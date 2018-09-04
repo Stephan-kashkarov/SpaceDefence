@@ -124,6 +124,7 @@ class Map(object):
 			for i, room in enumerate(self.rooms): # grab each room and index
 				print("Exit Status: ", end = '')
 				print(exits)
+				print("Iterations left: {}".format())
 				print("Second | i: {}, room: {}". format(i, room))
 				for roomIndex in range(i, len(self.rooms)): # loop through all rooms after current
 					if room.checkOverlap(self.rooms[roomIndex]): # if they overlap
