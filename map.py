@@ -33,9 +33,8 @@ class Room(object):
 		this method takes in another room object and returns if the two rooms
 		are overlapping or not. This method is used in Map object's moveBoxes method
 		"""
-		if room.x1 in range(int(self.x1), int(self.x2)) or room.x2 in range(int(self.x1), int(self.x2)):
-			return True
-		elif room.y1 in range(int(self.y1), int(self.y2)) or room.y2 in range(int(self.y1), int(self.y2)):
+		if (int(room.x1) in range(int(self.x1), int(self.x2)) or int(room.x2) in range(int(self.x1), int(self.x2)))\
+		and(int(room.y1) in range(int(self.y1), int(self.y2)) or int(room.y2) in range(int(self.y1), int(self.y2))):
 			return True
 		else:
 			return False
@@ -102,26 +101,43 @@ class Map(object):
 		the rooms are purged.
 		"""
 		moving = True
+		exits = []
 		while moving: # while moving boxes
 			for i, room in enumerate(self.rooms): # grab each room and index
-				print("i: {}, room: {}". format(i, room))
+				print("First | i: {}, room: {}". format(i, room))
 				for roomIndex in range(0, i): # loop through every room below current
 					room2 = self.rooms[roomIndex] # shortens handle
 					x = room.x1 - room2.x1 # detects run
 					y = room.y1 - room2.y1 # detects rise
-					while not(room.checkOverlap(room2)): # while the rooms are still overlapping
-						print("x1: {}, x2: {}, y1: {}, y2: {}".format(
-							room.x1, room.x2, room.y1, room.y2
+					overlap = room.checkOverlap(room2)
+					while overlap: # while the rooms are still overlapping
+						print("x1: {}, x2: {}, y1: {}, y2: {} | Overlap: {}".format(
+							room.x1, room.x2, room.y1, room.y2, overlap
 							)
 						)
 						room.x1 += math.sin(x) # sinwave move
 						room.x2 += math.sin(x) # sinwave move
 						room.y1 += math.sin(y) # sinwave move
 						room.y2 += math.sin(y) # sinwave move
+						overlap = room.checkOverlap(room2)
+			exits = []
 			for i, room in enumerate(self.rooms): # grab each room and index
+				print("Exit Status: ", end = '')
+				print(exits)
+				print("Second | i: {}, room: {}". format(i, room))
 				for roomIndex in range(i, len(self.rooms)): # loop through all rooms after current
 					if room.checkOverlap(self.rooms[roomIndex]): # if they overlap
-						continue # start again
+						exits.append(True)
+						print('Overlap: True')
+						break # start again
+					else:
+						exits.append(False)
+						print('Overlap: False')
+				if True in exits:
+					break
+			if True not in exits:
+				break
+		print("Bad")
 
 
 
