@@ -90,7 +90,7 @@ class Battle:
 					self.app.write("	1. Throw (10 ap)")
 				if player.adrenaline >= 20:
 					self.app.write("	2. Shield (20 ap)")
-				self.app.write("	0. Cancel Spell")
+				self.app.write("	0. Back")
 				self.app.write("")
 				self.app.wait_variable(self.app.inputVariable)
 				ability_choice = self.app.inputVariable.get()
@@ -118,20 +118,23 @@ class Battle:
 		while True:
 			try:
 				self.app.write("Select an Item:")
-				self.app.write("1. Medkit ({} ~ available)".format(player.medikits))
+				self.app.write("	1. Medkit ({} ~ available)".format(player.medikits))
+				self.app.write("	"+"-"*20)
 				if len(player.inventory) > 0:
 					for i, item in enumerate(self.player.inventory, 2):
-						self.app.write("{}. {} ({} ~ available)".format(i, item, item.ammount))
+						self.app.write("	{}. {} ({} ~ available)".format(i, item, item.ammount))
 				else:
-					self.app.write("Inventory Empty!")
+					self.app.write("	No custom items in inventory")
+				self.app.write("	"+"-"*20)
+				self.app.write("	0. Back")
 				self.app.wait_variable(self.app.inputVariable)
 				item_choice = self.app.inputVariable.get()
 
 				if item_choice == "quit":
 					self.app.quit()
 
-				elif int(item_choice) == 1:
-					return 1
+				elif int(item_choice) in [0, 1]:
+					return int(item_choice)
 
 				elif int(item_choice) - 2 in range(len(player.inventory)):
 					return int(item_choice)
@@ -219,11 +222,12 @@ class Battle:
 					return True # exit and make flee true
 			
 				if player_action == 3:
-					item_choice = self.select_item()
-					if item_choice == 1:
-						has_attacked = player.use_medikit()
-					else:
-						has_attacked = player.inventory[item_choice - 2].use(player)
+					item_choice = self.select_item(player)
+					if item_choice != 0:
+						if item_choice == 1:
+							has_attacked = player.use_medikit()
+						else:
+							has_attacked = player.inventory[item_choice - 2].use(player)
 
 				elif player_action == 2:
 					ability_choice = self.select_ability(player)
@@ -277,8 +281,16 @@ class Battle:
 						for player in self.players:
 							loss = enemy.move(player)
 							self.losses.append(loss)
+							if loss == True:
+								index = self.players.index(player)
+								self.app.write(
+										"{} the {} has perished on the field of battle".format(
+											player.name, player.__class__.__name__
+										)
+									)
+								del self.players[index]
 
-			if True not in self.losses:
+			if False not in self.losses:
 				self.player_lost = True
 				self.app.write("Your party has been killed by your enemies.")
 				self.app.write("")

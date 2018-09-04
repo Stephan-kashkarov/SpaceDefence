@@ -1,7 +1,10 @@
-"""rpg.py - entry point for the RPG Game
-   Written by Stephan Kashkarov 
-   for Intermediate Programming
-   Python RPG Assignment 2018
+#!/bin/python3.6
+"""
+rpg.py - entry point for the RPG Game
+
+Written by Stephan Kashkarov 
+for Intermediate Programming
+Python RPG Assignment 2018
 """
 
 class Item(object):
