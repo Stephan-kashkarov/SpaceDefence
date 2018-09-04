@@ -47,7 +47,7 @@ class Map(object):
 		landmarks and characters 
 	"""
 
-	def __init__(self, x=255, y=255, size=20):
+	def __init__(self, x=255, y=255, size=10):
 		"""Initialiser for Map"""
 		self.x = x if x > 128 else 128
 		self.y = y if y > 128 else 128
@@ -122,18 +122,13 @@ class Map(object):
 						overlap = room.checkOverlap(room2)
 			exits = []
 			for i, room in enumerate(self.rooms): # grab each room and index
-				print("Exit Status: ", end = '')
-				print(exits)
-				print("Iterations left: {}".format())
-				print("Second | i: {}, room: {}". format(i, room))
 				for roomIndex in range(i, len(self.rooms)): # loop through all rooms after current
 					if room.checkOverlap(self.rooms[roomIndex]): # if they overlap
 						exits.append(True)
-						print('Overlap: True')
 						break # start again
 					else:
 						exits.append(False)
-						print('Overlap: False')
+				print("Exit Status: {}, Len of Exits: {}/{}".format(True in exits, len(exits), len(self.rooms)**2))
 				if True in exits:
 					break
 			if True not in exits:
