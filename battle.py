@@ -32,6 +32,7 @@ class Battle:
 		self.player_lost = False
 		self.losses = []
 		self.battle_map = map.make_map(20, 20)
+		self.spawnpoints = []
 		self.initailised = False
 	
 	def play(self):
@@ -211,7 +212,11 @@ class Battle:
 
 	def map(self, player):
 		if self.initailised == True:
-			pass
+			for i in range(player.battleY - 4, player.battleY + 4):
+				visible_map = ''
+				for j in range(player.battleX - 4, player.battleX + 4):
+					visible_map += self.battle_map[i][j]
+				self.app.write(visible_map)
 		else:
 			self.generate()
 			self.select_spawnpoints()
@@ -228,44 +233,49 @@ class Battle:
 		self.initailised = True
 		benches = []
 		buildings = []
-		spawnpoints = []
+		self.spawnpoints = []
 		while len(buildings) <= 3:
 			x = random.randint(5, len(self.battle_map)-5)
 			y = random.randint(5, len(self.battle_map[0])-5)
-			if self.battle_map[x][y] == 0:
+			if self.battle_map[y][x] == 0:
 				buildings.append((x, y))
 				for i in range(x, x + 5):
 					for j in range(y, y + 5):
-						self.battle_map[i][j] = 2
+						self.battle_map[j][i] = 2
 		del buildings
 		while len(benches) <= 16:
 			x = random.randint(3, len(self.battle_map)-3)
 			y = random.randint(3, len(self.battle_map[0])-3)
 			type = random.randint(0, 1)
-			if self.battle_map[x][y] == 0:
+			if self.battle_map[y][x] == 0:
 				benches.append((x, y, type))
 				if type == 0:
 					for i in range(x, x + 3):
-						self.battle_map[i][y] = 1
+						self.battle_map[y][i] = 1
 				else:
 					for i in range(y, y + 3):
-						self.battle_map[x][i] = 1
+						self.battle_map[i][x] = 1
 		del benches
-		while len(spawnpoints) <= 4:
+		while len(self.spawnpoints) <= 4:
 			x = random.randint(3, len(self.battle_map)/4)
 			y = random.randint(3, len(self.battle_map[0])/4)
-			if self.battle_map[x][y] == 0:
-				spawnpoints.append((x, y))
-				self.battle_map[x][y] = 3
-		while len(spawnpoints) <= 8:
+			if self.battle_map[y][x] == 0:
+				self.spawnpoints.append((x, y, 1))
+		while len(self.spawnpoints) <= 8:
 			x = random.randint(3, 3 * len(self.battle_map)/4)
 			y = random.randint(3, 3 * len(self.battle_map[0])/4)
-			if self.battle_map[x][y] == 0:
-				spawnpoints.append((x, y))
-				self.battle_map[x][y] = 4
-		del spawnpoints
+			if self.battle_map[y][x] == 0:
+				self.spawnpoints.append((x, y, 2))
 		
-
+	def select_spawnpoints(self):
+		for i in range(0, len(self.players)):
+			if self.spawnpoints[i][2] == 1:
+				self.players[i].battleX = self.spawnpoints[i][0]
+				self.players[i].battleY = self.spawnpoints[i][1]
+		for i in range(4, len(self.enemies) + 4):
+			if self.spawnpoints[i][2] == 2:
+				self.enemies[i].battleX = self.spawnpoints[i][0]
+				self.enemies[i].battleY = self.spawnpoints[i][1]
 
 
 	def do_player_actions(self):
