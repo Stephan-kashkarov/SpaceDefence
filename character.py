@@ -31,6 +31,8 @@ class Character:
 		self.max_shield = 50
 		self.inventory = []
 		self.app = app
+		self.battleX = 0
+		self.battleY = 0
 
 	def __str__(self):
 		""" string representation of character """

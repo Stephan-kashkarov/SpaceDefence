@@ -10,8 +10,9 @@ Intermediate Programming Object-Oriented Assignment 2018
 
 # import modules
 import sys
-import time
 import map
+import time
+import random
 
 
 class Battle:
@@ -28,9 +29,10 @@ class Battle:
 		self.wins = 0
 		self.kills = 0
 		self.player_won = False
-		self.losses = []
 		self.player_lost = False
-		self.map = map.make_map(20, 20)
+		self.losses = []
+		self.battle_map = map.make_map(20, 20)
+		self.initailised = False
 	
 	def play(self):
 		"""
@@ -62,7 +64,9 @@ class Battle:
 				self.app.write("	1. Attack Enemies")
 				self.app.write("	2. Use Abilities")
 				self.app.write("	3. Use Items")
-				self.app.write("	4. Flee the battle")
+				self.app.write("	4. Move")
+				self.app.write("	5. Pass")
+				self.app.write("	0. Flee the battle")
 				self.app.write("")
 				self.app.wait_variable(self.app.inputVariable)
 				player_action = self.app.inputVariable.get()
@@ -71,7 +75,7 @@ class Battle:
 					self.app.quit()
 
 				player_action = int(player_action)
-				if player_action not in range(1,5):
+				if player_action not in range(0,6):
 					raise ValueError
 				else:
 					break
@@ -205,6 +209,65 @@ class Battle:
 		
 		return stance_choice
 
+	def map(self, player):
+		if self.initailised == True:
+			pass
+		else:
+			self.generate()
+			self.select_spawnpoints()
+			self.map(player)
+
+	def generate(self):
+		"""generate Method ~
+		This method generates a battle map for the
+		current battle. The map contains:
+		 ~ 3 buildings
+		 ~ 16 benches
+		 ~ 8 spawn points.
+		"""
+		self.initailised = True
+		benches = []
+		buildings = []
+		spawnpoints = []
+		while len(buildings) <= 3:
+			x = random.randint(5, len(self.battle_map)-5)
+			y = random.randint(5, len(self.battle_map[0])-5)
+			if self.battle_map[x][y] == 0:
+				buildings.append((x, y))
+				for i in range(x, x + 5):
+					for j in range(y, y + 5):
+						self.battle_map[i][j] = 2
+		del buildings
+		while len(benches) <= 16:
+			x = random.randint(3, len(self.battle_map)-3)
+			y = random.randint(3, len(self.battle_map[0])-3)
+			type = random.randint(0, 1)
+			if self.battle_map[x][y] == 0:
+				benches.append((x, y, type))
+				if type == 0:
+					for i in range(x, x + 3):
+						self.battle_map[i][y] = 1
+				else:
+					for i in range(y, y + 3):
+						self.battle_map[x][i] = 1
+		del benches
+		while len(spawnpoints) <= 4:
+			x = random.randint(3, len(self.battle_map)/4)
+			y = random.randint(3, len(self.battle_map[0])/4)
+			if self.battle_map[x][y] == 0:
+				spawnpoints.append((x, y))
+				self.battle_map[x][y] = 3
+		while len(spawnpoints) <= 8:
+			x = random.randint(3, 3 * len(self.battle_map)/4)
+			y = random.randint(3, 3 * len(self.battle_map[0])/4)
+			if self.battle_map[x][y] == 0:
+				spawnpoints.append((x, y))
+				self.battle_map[x][y] = 4
+		del spawnpoints
+		
+
+
+
 	def do_player_actions(self):
 		""" Performs the player's actions """
 	
@@ -221,9 +284,12 @@ class Battle:
 
 				has_attacked = False
 
-				if player_action == 4: # if player flees 
-					return True # exit and make flee true
-			
+				if player_action == 5:
+					has_attacked = True
+
+				if player_action == 4:
+					self.map(player)
+
 				if player_action == 3:
 					item_choice = self.select_item(player)
 					if item_choice != 0:
@@ -244,6 +310,9 @@ class Battle:
 						else:
 							player.use_ability(ability_choice)
 					
+				if player_action == 0: # if player flees 
+					return True # exit and make flee true
+
 				else:
 					target = self.choose_target()
 					has_attacked = True
