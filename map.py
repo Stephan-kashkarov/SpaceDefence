@@ -12,12 +12,12 @@ import random
 from pprint import pprint
 
 
-def make_map(x, y):
+def make_map(x, y, val):
 	map = []
 	for i in range(x):
 		map.append([])
 		for j in range(y):
-			map[i].append(0)
+			map[i].append(val)
 	return map
 
 
@@ -70,7 +70,7 @@ class Map(object):
 		self.x = x if x > 128 else 128
 		self.y = y if y > 128 else 128
 		self.size = size
-		self.map = make_map(self.x, self.y)
+		self.map = make_map(self.x, self.y, 0)
 		self.rooms = []
 
 

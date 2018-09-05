@@ -31,10 +31,11 @@ class Battle:
 		self.player_won = False
 		self.player_lost = False
 		self.losses = []
-		self.battle_map = map.make_map(20, 20)
+		self.battle_map = map.make_map(20, 20, " ")
 		self.spawnpoints = []
 		self.initailised = False
-	
+
+
 	def play(self):
 		"""
 		Begins and controls the battle
@@ -56,6 +57,7 @@ class Battle:
 			self.turn += 1
 			
 		return (self.wins, self.kills, False)
+
 
 	def get_action(self, player):
 		""" Gets the player's chosen action for their turn """
@@ -86,6 +88,7 @@ class Battle:
 				self.app.write("")
 		
 		return player_action
+
 
 	def select_ability(self, player):
 		""" Selects the ability the player would like to use """
@@ -119,6 +122,7 @@ class Battle:
 				self.app.write("")
 		
 		return ability_choice
+
 
 	def select_item(self, player):
 		""" Selects the item the player would like to use """
@@ -155,6 +159,7 @@ class Battle:
 				self.app.write("You must enter a valid choice")
 				self.app.write("")
 
+
 	def choose_target(self):
 		""" Selects the target of the player's action """
 		while True:
@@ -185,6 +190,7 @@ class Battle:
 
 		return target
 
+
 	def choose_stance(self):
 		while True:
 			try:
@@ -210,17 +216,74 @@ class Battle:
 		
 		return stance_choice
 
+
 	def map(self, player):
 		if self.initailised == True:
-			for i in range(player.battleY - 4, player.battleY + 4):
-				visible_map = ''
-				for j in range(player.battleX - 4, player.battleX + 4):
-					visible_map += self.battle_map[i][j]
-				self.app.write(visible_map)
+			while True:
+				self.app.write("\n\n\n\n\n\n\n\n\n\n\n\n")
+				for i in range(player.battleY - 4, player.battleY + 4):
+					visible_map = ''
+					for j in range(player.battleX - 4, player.battleX + 4):
+						if j == player.battleX and i == player.battleY:
+							visible_map += "X"
+						else:
+							visible_map += str(self.battle_map[i][j])
+					self.app.write(visible_map)
+				try:
+					self.app.write("Move: (wasd or hjkl(vim style))")
+					self.app.write("0. Cancel")
+					self.app.write("")
+					self.app.wait_variable(self.app.inputVariable)
+					move = self.app.inputVariable.get()
+
+					if move == 0:
+						self.battle_map[player.battleY][player.battleX] = 'A'
+						return False
+
+					elif move == "w" or move == "j":
+						move = self.move(-1, 0, player)
+					elif move == "s" or move == "k":
+						move = self.move(1, 0, player)
+					elif move == "a" or move == "h":
+						move = self.move(0, -1, player)
+					elif move == "d" or move == "l":
+						move = self.move(0, 1, player)
+					else:
+						raise ValueError
+					
+					if move == 1:
+						self.app.write("Not enough adrenaline to move!")
+						self.app.write("")
+						self.battle_map[player.battleY][player.battleX] = 'A'
+						return True
+					elif move == 2:
+						raise ValueError
+
+				except ValueError:
+					self.app.write("Invalid response/Move")
+					self.app.write("")
+
 		else:
 			self.generate()
 			self.select_spawnpoints()
 			self.map(player)
+
+
+	def move(self, y, x, player):
+		x1 = player.battleX
+		y1 = player.battleY
+		if self.battle_map[y1 + y][x1 + x] == " " and player.adrenaline >= 5:
+			self.battle_map[y1][x1] = " "
+			self.battle_map[y1 + y][x1 + x] = "X"
+			player.battleX += x
+			player.battleY += y
+			player.adrenaline -= 5
+			return 0
+		elif player.adrenaline < 5:
+			return 1
+		else:
+			return 2
+
 
 	def generate(self):
 		"""generate Method ~
@@ -228,7 +291,8 @@ class Battle:
 		current battle. The map contains:
 		 ~ 3 buildings
 		 ~ 16 benches
-		 ~ 8 spawn points.
+		 ~ 4 friendly spawn points
+		 ~ 4 enemy spawn points
 		"""
 		self.initailised = True
 		benches = []
@@ -237,35 +301,37 @@ class Battle:
 		while len(buildings) <= 3:
 			x = random.randint(5, len(self.battle_map)-5)
 			y = random.randint(5, len(self.battle_map[0])-5)
-			if self.battle_map[y][x] == 0:
+			if self.battle_map[y][x] == " ":
 				buildings.append((x, y))
 				for i in range(x, x + 5):
 					for j in range(y, y + 5):
-						self.battle_map[j][i] = 2
+						self.battle_map[j][i] = "#"
 		del buildings
 		while len(benches) <= 16:
 			x = random.randint(3, len(self.battle_map)-3)
 			y = random.randint(3, len(self.battle_map[0])-3)
 			type = random.randint(0, 1)
-			if self.battle_map[y][x] == 0:
+			if self.battle_map[y][x] == " ":
 				benches.append((x, y, type))
-				if type == 0:
+				if type == " ":
 					for i in range(x, x + 3):
-						self.battle_map[y][i] = 1
+						self.battle_map[y][i] = 'o'
 				else:
 					for i in range(y, y + 3):
-						self.battle_map[i][x] = 1
+						self.battle_map[i][x] = 'o'
 		del benches
 		while len(self.spawnpoints) <= 4:
 			x = random.randint(3, len(self.battle_map)/4)
 			y = random.randint(3, len(self.battle_map[0])/4)
-			if self.battle_map[y][x] == 0:
+			if self.battle_map[y][x] == " ":
 				self.spawnpoints.append((x, y, 1))
+				self.battle_map[y][x] == 'A'
 		while len(self.spawnpoints) <= 8:
 			x = random.randint(3, 3 * len(self.battle_map)/4)
 			y = random.randint(3, 3 * len(self.battle_map[0])/4)
-			if self.battle_map[y][x] == 0:
+			if self.battle_map[y][x] == " ":
 				self.spawnpoints.append((x, y, 2))
+				self.battle_map[y][x] == 'E'
 		
 	def select_spawnpoints(self):
 		for i in range(0, len(self.players)):
@@ -274,8 +340,8 @@ class Battle:
 				self.players[i].battleY = self.spawnpoints[i][1]
 		for i in range(4, len(self.enemies) + 4):
 			if self.spawnpoints[i][2] == 2:
-				self.enemies[i].battleX = self.spawnpoints[i][0]
-				self.enemies[i].battleY = self.spawnpoints[i][1]
+				self.enemies[i - 4].battleX = self.spawnpoints[i][0]
+				self.enemies[i - 4].battleY = self.spawnpoints[i][1]
 
 
 	def do_player_actions(self):
@@ -297,10 +363,10 @@ class Battle:
 				if player_action == 5:
 					has_attacked = True
 
-				if player_action == 4:
-					self.map(player)
+				elif player_action == 4:
+					has_attacked = self.map(player)
 
-				if player_action == 3:
+				elif player_action == 3:
 					item_choice = self.select_item(player)
 					if item_choice != 0:
 						if item_choice == 1:
@@ -320,7 +386,7 @@ class Battle:
 						else:
 							player.use_ability(ability_choice)
 					
-				if player_action == 0: # if player flees 
+				elif player_action == 0: # if player flees 
 					return True # exit and make flee true
 
 				else:
@@ -345,6 +411,7 @@ class Battle:
 						self.app.write("")
 						time.sleep(1)
 						self.wins += 1
+
 
 	def do_enemy_actions(self):
 		""" Performs the enemies' actions """
