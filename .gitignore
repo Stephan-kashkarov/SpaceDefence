@@ -1,2 +1,5 @@
 .vscode/
 __pycache__/
+__pycache__/battle.cpython-36.pyc
+__pycache__/character.cpython-36.pyc
+__pycache__/item.cpython-36.pyc

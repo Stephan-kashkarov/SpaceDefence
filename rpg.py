@@ -280,6 +280,7 @@ def print_results():
 	app.write("No. Battles: {0}".format(str(battles)))
 	app.write("No. Wins: {0}".format(wins))
 	app.write("No. Kills: {0}".format(kills))
+	app.write("Size of party: {}".format(len(players)))
 	app.write("Success Rate (%): {0:.2f}%".format(float(wins*100/battles)))
 	app.write("Avg. kills per battle: {0:.2f}".format(float(kills)/battles))
 	app.write("")
@@ -324,11 +325,19 @@ while True:
 	for player in players:
 		app.write(player)
 	app.write("")
-	app.write("Create another Character? (y/n)")
-	app.wait_variable(app.inputVariable)
-	ans = app.inputVariable.get()
-	if ans == 'n':
+	if len(players) <= 2:
+		app.write("Create another Character? (y/n)")
+		app.write("")
+		app.wait_variable(app.inputVariable)
+		ans = app.inputVariable.get()
+		if ans == 'n':
+			break
+	else:
+		app.write("Party is full!")
+		app.write("")
+		time.sleep(1)
 		break
+		
 
 difficulty = set_difficulty()
 enemies = create_enemies(mode, difficulty)

@@ -1,7 +1,25 @@
 #!/usr/local/bin/python3.6
+"""
+rpg.py - entry point for the RPG Game
+
+Written by Stephan Kashkarov 
+for Intermediate Programming
+Python RPG Assignment 2018
+"""
+
 import math
 import random
 from pprint import pprint
+
+
+def make_map(x, y):
+	map = []
+	for i in range(x):
+		map.append([])
+		for j in range(y):
+			map[i].append(0)
+	return map
+
 
 
 class Room(object):
@@ -52,12 +70,9 @@ class Map(object):
 		self.x = x if x > 128 else 128
 		self.y = y if y > 128 else 128
 		self.size = size
-		self.map = []
+		self.map = make_map(self.x, self.y)
 		self.rooms = []
-		for i in range(self.x):
-			self.map.append([])
-			for j in range(self.y):
-				self.map[i].append(0)
+
 
 	def randomPoint(self):
 		"""random Point Method ~

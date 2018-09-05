@@ -329,7 +329,7 @@ class Assault(Character):
 	# Constructor for Assault class
 	def __init__(self, char_name, app):
 		Character.__init__(self, char_name, app)
-		self.max_health = 250
+		self.max_health = 50
 		self.max_adrenaline = 40
 		self.starting_medikits = 1
 		self.attack = 7
@@ -363,7 +363,7 @@ class Heavy(Character):
 	# Constructor for Heavy class
 	def __init__(self, char_name, app):
 		Character.__init__(self, char_name, app)
-		self.max_health = 300
+		self.max_health = 75
 		self.max_adrenaline = 30
 		self.starting_medikits = 1
 		self.attack = 9
@@ -389,7 +389,7 @@ class Sniper(Character):
 	# Constructor for Sniper class
 	def __init__(self, char_name, app):
 		Character.__init__(self, char_name, app)
-		self.max_health = 300
+		self.max_health = 50
 		self.max_adrenaline = 60
 		self.starting_medikits = 1
 		self.attack = 6
@@ -418,7 +418,7 @@ class Support(Character):
 	# Constructor for Support class
 	def __init__(self, char_name, app):
 		Character.__init__(self, char_name, app)
-		self.max_health = 250
+		self.max_health = 75
 		self.max_adrenaline = 40
 		self.starting_medikits = 2
 		self.attack = 3
@@ -448,7 +448,7 @@ class Floater(Character):
 	# Constructor for Floater class
 	def __init__(self, char_name, app):
 		Character.__init__(self, char_name, app)
-		self.max_health = 100
+		self.max_health = 45
 		self.max_adrenaline = 0
 		self.starting_medikits = 0
 		self.attack = 3
@@ -474,7 +474,7 @@ class Sectoid(Character):
 	# Constructor for Sectoid class
 	def __init__(self, char_name, app):
 		Character.__init__(self, char_name, app)
-		self.max_health = 250
+		self.max_health = 65
 		self.max_adrenaline = 0
 		self.starting_medikits = 0
 		self.attack = 7
@@ -500,7 +500,7 @@ class Muton(Character):
 	# Constructor for Muton class
 	def __init__(self, char_name, app):
 		Character.__init__(self, char_name, app)
-		self.max_health = 400
+		self.max_health = 85
 		self.max_adrenaline = 20
 		self.starting_medikits = 1
 		self.attack = 9
@@ -526,7 +526,7 @@ class Ethereal(Character):
 	# Constructor for Ethereal class
 	def __init__(self, char_name, app):
 		Character.__init__(self, char_name, app)
-		self.max_health = 150
+		self.max_health = 50
 		self.max_adrenaline = 100
 		self.starting_medikits = 2
 		self.attack = 5
@@ -555,7 +555,7 @@ class Psionic(Character):
 	# Constructor for Psionic class
 	def __init__(self, char_name, app):
 		Character.__init__(self, char_name, app)
-		self.max_health = 150
+		self.max_health = 55
 		self.max_adrenaline = 100
 		self.starting_medikits = 2
 		self.attack = 5

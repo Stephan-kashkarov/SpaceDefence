@@ -11,6 +11,8 @@ Intermediate Programming Object-Oriented Assignment 2018
 # import modules
 import sys
 import time
+import map
+
 
 class Battle:
 
@@ -28,6 +30,7 @@ class Battle:
 		self.player_won = False
 		self.losses = []
 		self.player_lost = False
+		self.map = map.make_map(20, 20)
 	
 	def play(self):
 		"""
@@ -267,8 +270,6 @@ class Battle:
 	def do_enemy_actions(self):
 		""" Performs the enemies' actions """
 
-		turn_over = False
-
 		if not self.player_won:
 			self.app.write("Enemies' Turn:")
 			self.app.write("")
@@ -278,7 +279,8 @@ class Battle:
 				if enemy.health > 0 and not self.player_lost:
 
 					if not self.player_lost:
-						for player in self.players:
+						for i in range(0, len(self.players)):
+							player = self.players[i]
 							loss = enemy.move(player)
 							self.losses.append(loss)
 							if loss == True:
@@ -288,10 +290,13 @@ class Battle:
 											player.name, player.__class__.__name__
 										)
 									)
-								del self.players[index]
-
-			if False not in self.losses:
-				self.player_lost = True
-				self.app.write("Your party has been killed by your enemies.")
-				self.app.write("")
-				time.sleep(1)
+								self.app.write("")
+								time.sleep(1)
+								self.players.pop(index)
+								if len(self.players) == 0:
+									self.player_lost = True
+									self.app.write("Your party has been killed by your enemies.")
+									self.app.write("")
+									time.sleep(1)
+									self.player_lost = True
+									return None
