@@ -31,7 +31,7 @@ class Battle:
 		self.player_won = False
 		self.player_lost = False
 		self.losses = []
-		self.battle_map = map.make_map(20, 20, " ")
+		self.battle_map = map.make_map(16, 16, " ", boundry=True)
 		self.spawnpoints = []
 		self.initailised = False
 
@@ -217,18 +217,21 @@ class Battle:
 		return stance_choice
 
 
-	def map(self, player):
+	def map(self, player, team):
 		if self.initailised == True:
 			while True:
 				self.app.write("\n\n\n\n\n\n\n\n\n\n\n\n")
-				for i in range(player.battleY - 4, player.battleY + 4):
-					visible_map = ''
-					for j in range(player.battleX - 4, player.battleX + 4):
+				self.app.write("XXXXXXXXXXXX")
+				for i in range(player.battleY - 6, player.battleY + 6):
+					visible_map = 'X'
+					for j in range(player.battleX - 6, player.battleX + 6):
 						if j == player.battleX and i == player.battleY:
-							visible_map += "X"
+							visible_map += "x"
 						else:
 							visible_map += str(self.battle_map[i][j])
+					visible_map += "X"
 					self.app.write(visible_map)
+				self.app.write("XXXXXXXXXXXX")
 				try:
 					self.app.write("Move: (wasd or hjkl(vim style))")
 					self.app.write("0. Cancel")
@@ -236,10 +239,11 @@ class Battle:
 					self.app.wait_variable(self.app.inputVariable)
 					move = self.app.inputVariable.get()
 
-					if move == 0:
-						self.battle_map[player.battleY][player.battleX] = 'A'
+					if move == '0':
+						self.battle_map[player.battleY][player.battleX] = team
 						return False
-
+					elif move == "quit":
+						self.app.quit()
 					elif move == "w" or move == "j":
 						move = self.move(-1, 0, player)
 					elif move == "s" or move == "k":
@@ -254,7 +258,7 @@ class Battle:
 					if move == 1:
 						self.app.write("Not enough adrenaline to move!")
 						self.app.write("")
-						self.battle_map[player.battleY][player.battleX] = 'A'
+						self.battle_map[player.battleY][player.battleX] = team
 						return True
 					elif move == 2:
 						raise ValueError
@@ -266,7 +270,7 @@ class Battle:
 		else:
 			self.generate()
 			self.select_spawnpoints()
-			self.map(player)
+			self.map(player, team)
 
 
 	def move(self, y, x, player):
@@ -289,8 +293,8 @@ class Battle:
 		"""generate Method ~
 		This method generates a battle map for the
 		current battle. The map contains:
-		 ~ 3 buildings
-		 ~ 16 benches
+		 ~ 2 buildings
+		 ~ 8 benches
 		 ~ 4 friendly spawn points
 		 ~ 4 enemy spawn points
 		"""
@@ -298,18 +302,18 @@ class Battle:
 		benches = []
 		buildings = []
 		self.spawnpoints = []
-		while len(buildings) <= 3:
-			x = random.randint(5, len(self.battle_map)-5)
-			y = random.randint(5, len(self.battle_map[0])-5)
+		while len(buildings) <= 2:
+			x = random.randint(5, len(self.battle_map) - 7)
+			y = random.randint(5, len(self.battle_map[0]) - 7)
 			if self.battle_map[y][x] == " ":
 				buildings.append((x, y))
 				for i in range(x, x + 5):
 					for j in range(y, y + 5):
-						self.battle_map[j][i] = "#"
+						self.battle_map[j][i] = "B"
 		del buildings
-		while len(benches) <= 16:
-			x = random.randint(3, len(self.battle_map)-3)
-			y = random.randint(3, len(self.battle_map[0])-3)
+		while len(benches) <= 8:
+			x = random.randint(3, len(self.battle_map) - 5)
+			y = random.randint(3, len(self.battle_map[0]) - 5)
 			type = random.randint(0, 1)
 			if self.battle_map[y][x] == " ":
 				benches.append((x, y, type))
@@ -320,15 +324,15 @@ class Battle:
 					for i in range(y, y + 3):
 						self.battle_map[i][x] = 'o'
 		del benches
-		while len(self.spawnpoints) <= 4:
-			x = random.randint(3, len(self.battle_map)/4)
-			y = random.randint(3, len(self.battle_map[0])/4)
+		while len(self.spawnpoints) <= 3:
+			x = random.randint(3, (len(self.battle_map) - 1) / 4)
+			y = random.randint(3, (len(self.battle_map[0]) - 1) / 4)
 			if self.battle_map[y][x] == " ":
 				self.spawnpoints.append((x, y, 1))
 				self.battle_map[y][x] == 'A'
-		while len(self.spawnpoints) <= 8:
-			x = random.randint(3, 3 * len(self.battle_map)/4)
-			y = random.randint(3, 3 * len(self.battle_map[0])/4)
+		while len(self.spawnpoints) <= 6:
+			x = random.randint(3, 3 * (len(self.battle_map) - 1) / 4)
+			y = random.randint(3, 3 * (len(self.battle_map[0]) - 1) / 4)
 			if self.battle_map[y][x] == " ":
 				self.spawnpoints.append((x, y, 2))
 				self.battle_map[y][x] == 'E'
@@ -338,10 +342,10 @@ class Battle:
 			if self.spawnpoints[i][2] == 1:
 				self.players[i].battleX = self.spawnpoints[i][0]
 				self.players[i].battleY = self.spawnpoints[i][1]
-		for i in range(4, len(self.enemies) + 4):
+		for i in range(3, len(self.enemies) + 3):
 			if self.spawnpoints[i][2] == 2:
-				self.enemies[i - 4].battleX = self.spawnpoints[i][0]
-				self.enemies[i - 4].battleY = self.spawnpoints[i][1]
+				self.enemies[i - 3].battleX = self.spawnpoints[i][0]
+				self.enemies[i - 3].battleY = self.spawnpoints[i][1]
 
 
 	def do_player_actions(self):
@@ -352,6 +356,8 @@ class Battle:
 		while not self.player_won and not turn_over:
 			
 			for player in self.players:
+				player.adrenaline = player.max_adrenaline
+
 				player.print_status()
 				stance_choice = self.choose_stance()
 				player.set_stance(stance_choice)
@@ -364,7 +370,7 @@ class Battle:
 					has_attacked = True
 
 				elif player_action == 4:
-					has_attacked = self.map(player)
+					has_attacked = self.map(player, "A")
 
 				elif player_action == 3:
 					item_choice = self.select_item(player)

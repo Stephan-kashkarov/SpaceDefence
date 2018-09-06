@@ -12,12 +12,22 @@ import random
 from pprint import pprint
 
 
-def make_map(x, y, val):
+def make_map(x, y, val, boundry=False):
 	map = []
-	for i in range(x):
+	if boundry:
 		map.append([])
 		for j in range(y):
+			map[0].append("#")
+	for i in range(1, x):
+		if boundry:
+			map[-1].append("#")
+			map.append(["#"])
+		for j in range(1, y):
 			map[i].append(val)
+	if boundry:
+		map.append([])
+		for j in range(y):
+			map[-1].append("#")
 	return map
 
 

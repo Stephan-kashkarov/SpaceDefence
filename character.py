@@ -451,7 +451,7 @@ class Floater(Character):
 	def __init__(self, char_name, app):
 		Character.__init__(self, char_name, app)
 		self.max_health = 45
-		self.max_adrenaline = 0
+		self.max_adrenaline = 20
 		self.starting_medikits = 0
 		self.attack = 3
 		self.defense = 3
@@ -477,7 +477,7 @@ class Sectoid(Character):
 	def __init__(self, char_name, app):
 		Character.__init__(self, char_name, app)
 		self.max_health = 65
-		self.max_adrenaline = 0
+		self.max_adrenaline = 35
 		self.starting_medikits = 0
 		self.attack = 7
 		self.defense = 5
