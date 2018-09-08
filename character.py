@@ -71,12 +71,12 @@ class Character:
 			self.app.write(self.name + " chose balanced stance.")
 		self.app.write("")
 
-	def attack_enemy(self, target):
+	def attack_enemy(self, target, modifier):
 		''' Attacks the targeted enemy. Accepts a Character object as the parameter (enemy
 		to be targeted). Returns True if target killed, False if still alive.'''
 
-		roll = random.randint(0,20)
-		hit = int(roll * self.attack_mod * self.attack)
+		roll = random.randint(5,20)
+		hit = int(roll * self.attack_mod * self.attack * (0/100))
 		self.app.write(self.name + " attacks " + target.name + ".")
 		time.sleep(1)
 
@@ -93,7 +93,7 @@ class Character:
 			self.app.write(self.name + " has killed " + target.name + ".")
 			self.app.write("")
 			time.sleep(1)
-			return True      
+			return True
 		else:
 			return False
 
@@ -105,8 +105,8 @@ class Character:
 		roll = random.randint(1, 20)
 		block = int(roll * self.defense_mod * self.defense)
 				
-		# Roll for dodge - must roll a 10 (10% chance)
-		dodge_roll = random.randint(1, 10)
+		# Roll for dodge - must roll a 10 (1% chance)
+		dodge_roll = random.randint(1, 100)
 		if dodge_roll == 10:
 			self.app.write(self.name + " successfully dodges the attack!")
 			block = att_damage
@@ -342,7 +342,7 @@ class Assault(Character):
 		self.adrenaline = self.max_adrenaline
 		self.medikits = self.starting_medikits
 
-	def move(self, player):
+	def move(self, player, modifier):
 		""" Defines the AI for the Assault class """
 		move_complete = Character.move(self, player)
 		if not move_complete:
@@ -355,7 +355,7 @@ class Assault(Character):
 			if self.shield == 0 and self.adrenaline >= 20:
 				self.use_ability(2)
 			else:
-				return self.attack_enemy(player)
+				return self.attack_enemy(player, modifier)
 		return False
 
 class Heavy(Character):
@@ -376,12 +376,12 @@ class Heavy(Character):
 		self.adrenaline = self.max_adrenaline
 		self.medikits = self.starting_medikits
 
-	def move(self, player):
+	def move(self, player, modifier):
 		""" Defines the AI for the Heavy class """
 		move_complete = Character.move(self, player)
 		if not move_complete:
 			self.set_stance('a')
-			return self.attack_enemy(player)
+			return self.attack_enemy(player, modifier)
 		return False
 		
 class Sniper(Character):
@@ -402,7 +402,7 @@ class Sniper(Character):
 		self.adrenaline = self.max_adrenaline
 		self.medikits = self.starting_medikits
 
-	def move(self, player):
+	def move(self, player, modifier):
 		""" Defines the AI for the Sniper class """
 		move_complete = Character.move(self, player)
 		if not move_complete:
@@ -410,7 +410,7 @@ class Sniper(Character):
 			if self.shield == 0 and self.adrenaline >= 20:
 				self.use_ability(2)
 			else:
-				return self.attack_enemy(player)
+				return self.attack_enemy(player, modifier)
 		return False
 
 class Support(Character):
@@ -431,7 +431,7 @@ class Support(Character):
 		self.adrenaline = self.max_adrenaline
 		self.medikits = self.starting_medikits
 
-	def move(self, player):
+	def move(self, player, modifier):
 		""" Defines the AI for the Support class """
 		move_complete = Character.move(self, player)
 		if not move_complete:
@@ -440,7 +440,7 @@ class Support(Character):
 			if self.shield == 0 and self.adrenaline >= 20:
 				self.use_ability(2)
 			else:
-				return self.attack_enemy(player)
+				return self.attack_enemy(player, modifier)
 		return False
 
 class Floater(Character):
@@ -461,12 +461,12 @@ class Floater(Character):
 		self.adrenaline = self.max_adrenaline
 		self.medikits = self.starting_medikits
 
-	def move(self, player):
+	def move(self, player, modifier):
 		""" Defines the AI for the Floater class """
 		move_complete = Character.move(self, player)
 		if not move_complete:
 			self.set_stance('d')
-			return self.attack_enemy(player)
+			return self.attack_enemy(player, modifier)
 		return False
 
 class Sectoid(Character):
@@ -487,12 +487,12 @@ class Sectoid(Character):
 		self.adrenaline = self.max_adrenaline
 		self.medikits = self.starting_medikits
 
-	def move(self, player):
+	def move(self, player, modifier):
 		""" Defines the AI for the Sectoid class """
 		move_complete = Character.move(self, player)
 		if not move_complete:
 			self.set_stance('b')
-			return self.attack_enemy(player)
+			return self.attack_enemy(player, modifier)
 		return False
 
 class Muton(Character):
@@ -513,12 +513,12 @@ class Muton(Character):
 		self.adrenaline = self.max_adrenaline
 		self.medikits = self.starting_medikits
 
-	def move(self, player):
+	def move(self, player, modifier):
 		""" Defines the AI for the Muton class """
 		move_complete = Character.move(self, player)
 		if not move_complete:
 			self.set_stance('a')
-			return self.attack_enemy(player)
+			return self.attack_enemy(player, modifier)
 		return False
 
 class Ethereal(Character):
@@ -539,7 +539,7 @@ class Ethereal(Character):
 		self.adrenaline = self.max_adrenaline
 		self.medikits = self.starting_medikits
 
-	def move(self, player):
+	def move(self, player, modifier):
 		""" Defines the AI for the Ethereal class """
 		move_complete = Character.move(self, player)
 		if not move_complete:
@@ -547,7 +547,7 @@ class Ethereal(Character):
 			if self.adrenaline >= 10:
 				return self.use_ability(1, player)
 			else:
-				return self.attack_enemy(player)
+				return self.attack_enemy(player, modifier)
 		return False
 
 class Psionic(Character):
@@ -568,7 +568,7 @@ class Psionic(Character):
 		self.adrenaline = self.max_adrenaline
 		self.medikits = self.starting_medikits
 
-	def move(self, player):
+	def move(self, player, modifier):
 		""" Defines the AI for the Psionic class """
 		move_complete = Character.move(self, player)
 		if not move_complete:
@@ -578,5 +578,5 @@ class Psionic(Character):
 			elif self.adrenaline >= 10:
 				return self.use_ability(1, player)
 			else:
-				return self.attack_enemy(player)
+				return self.attack_enemy(player, modifier)
 		return False
