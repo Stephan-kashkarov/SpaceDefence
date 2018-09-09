@@ -164,22 +164,26 @@ class Battle:
 	def choose_target(self, player):
 		""" Selects the target of the player's action """
 		while True:
-			enemies = self.enemies
-			for enemy in enemies:
-				if not self.can_see(player, enemy):
-					enemies.remove(enemy)
+			enemies = [x for x in self.enemies]
+			for i, enemy in [x for x in enumerate(enemies)][::-1]:
+				if not self.can_see(player, enemy)[0]:
+					enemies.pop(i)
 			try:
 				self.app.write("Choose your target:")
-				# use j to give a number option
-				j = 0
-				while j < len(enemies):
-					if enemies[j].health > 0:
-						self.app.write("{}. {} (Cover: {:2f})".format(
-							str(j),
-							enemies[j].name,
-							self.can_see(player, enemy)[1]
-						))
-					j += 1
+				if len(enemies) == 0:
+					self.app.write("No enemies visible!")
+				else:
+					# use j to give a number option
+					j = 1
+					while j < len(enemies):
+						if enemies[j].health > 0:
+							self.app.write("{}. {} (Cover: {:2f})".format(
+								str(j),
+								enemies[j].name,
+								self.can_see(player, enemies[j])[1]
+							))
+						j += 1
+				self.app.write("0. Cancel")
 				self.app.write("")
 				self.app.wait_variable(self.app.inputVariable)
 				target = self.app.inputVariable.get()
@@ -188,6 +192,8 @@ class Battle:
 					self.app.quit()
 
 				target = int(target)
+				if target == 0:
+					return False
 				if not (target < len(self.enemies) and target >= 0) or self.enemies[target].health <= 0:
 					raise ValueError
 				else:
@@ -197,7 +203,7 @@ class Battle:
 				self.app.write("You must enter a valid choice")
 				self.app.write("")
 
-		return target
+		return target + 1
 
 
 	def choose_stance(self):
@@ -338,7 +344,7 @@ class Battle:
 		benches = []
 		buildings = []
 		self.spawnpoints = []
-		while False: # len(buildings) <= 2:
+		while len(buildings) <= 2:
 			x = random.randint(5, len(self.battle_map) - 7)
 			y = random.randint(5, len(self.battle_map[0]) - 7)
 			if self.battle_map[y][x] == " ":
@@ -360,13 +366,13 @@ class Battle:
 					for i in range(y, y + 3):
 						self.battle_map[i][x] = 'o'
 		del benches
-		while len(self.spawnpoints) < 3:
+		while len(self.spawnpoints) < len(self.players):
 			x = random.randint(1, (len(self.battle_map) - 1) / 4)
 			y = random.randint(1, (len(self.battle_map[0]) - 1) / 4)
 			if self.battle_map[y][x] == " ":
 				self.spawnpoints.append((x, y, 1))
 				self.battle_map[y][x] = 'A'
-		while len(self.spawnpoints) <= 6:
+		while len(self.spawnpoints) <= len(self.players) + len(self.enemies):
 			x = random.randint(int(3/4 * len(self.battle_map)) - 1, len(self.battle_map) - 2)
 			y = random.randint(int(3/4 * len(self.battle_map[0])) - 1, len(self.battle_map[0]) - 2)
 			if self.battle_map[y][x] == " ":
@@ -384,28 +390,54 @@ class Battle:
 				self.enemies[i - 3].battleY = self.spawnpoints[i][1]
 
 	def can_see(self, player1, player2):
-		modifier = 100
 		if player2.battleX != player1.battleX:
 			gradient = (player2.battleY - player1.battleY) / \
 					   (player2.battleX - player1.battleX)
 		else:
 			gradient = 0
 		intercept = player1.battleY - (gradient * player1.battleX)
-		for y in range(player1.battleY, player2.battleY):
-			x = int((y + intercept) / gradient)
-			if self.battle_map[y][x] == " ":
-				if modifier <= 0:
-					modifier -= 5
-				else:
-					return False, 0
-			elif self.battle_map[y][x] == "#":
-				return False, 0
-			elif self.battle_map[y][x] == "o":
-				if modifier <= 0:
-					modifier -= 25
-				else:
-					return False, 0
-		return True, modifier
+		if player1.battleY < player2.battleY:
+			modifier = 100
+			for y in range(player1.battleY, player2.battleY):
+				x = int((y - intercept) / gradient)
+				modifier = self.get_mod(x, y, modifier)
+				if modifier == 0:
+					break
+		elif player1.battleY > player2.battleY:
+			modifier = 100
+			for y in range(player2.battleY, player1.battleY):
+				x = int((y - intercept) / gradient)
+				modifier = self.get_mod(x, y, modifier)
+				if modifier == 0:
+					break
+		else:
+			modifier = 100
+			for x in range(player1.battleX, player2.battleX, 1 if player1.battleX > player2.battleX else -1):
+				y = int((gradient * x) + intercept)
+				modifier = self.get_mod(x, y, modifier)
+				if modifier == 0:
+					break
+		return (True, modifier) if modifier > 0 else False, 0
+
+	def get_mod(self, x, y, modifier):
+		if self.battle_map[y][x] == " ":
+			if modifier >= 20:
+				modifier -= 20
+			else:
+				return 0
+		elif self.battle_map[y][x] == "B":
+			return 0
+		elif self.battle_map[y][x] == "o":
+			if modifier >= 45:
+				modifier -= 45
+			else:
+				return 0
+		else:
+			if modifier >= 35:
+				modifier -= 35
+			else:
+				return 0
+		return modifier
 
 
 	def do_player_actions(self):
@@ -457,11 +489,15 @@ class Battle:
 
 				else:
 					target = self.choose_target(player)
-					has_attacked = True
-					modifier = self.can_see(player, self.enemies[target])[1]
+					if target == False:
+						has_attacked = False
+					else:
+						target -= 1
+						has_attacked = True
+						modifier = self.can_see(player, self.enemies[target])[1]
 
-					if player.attack_enemy(self.enemies[target], modifier):
-						self.kills += 1
+						if player.attack_enemy(self.enemies[target], modifier):
+							self.kills += 1
 			
 				turn_over = True
 				if not has_attacked:
@@ -500,7 +536,7 @@ class Battle:
 						else:
 							for player in players:
 								mod = self.can_see(enemy, player)
-								loss = enemy.move(player, mod)
+								loss = enemy.move(player, mod[1])
 								self.losses.append(loss)
 								if loss == True:
 									index = self.players.index(player)

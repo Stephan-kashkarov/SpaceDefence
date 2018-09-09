@@ -76,8 +76,17 @@ class Character:
 		to be targeted). Returns True if target killed, False if still alive.'''
 
 		roll = random.randint(5,20)
-		hit = int(roll * self.attack_mod * self.attack * (0/100))
+		hit = int(roll * self.attack_mod * self.attack * float(modifier/100))
 		self.app.write(self.name + " attacks " + target.name + ".")
+		self.app.write("-"*20)
+		self.app.write("Attack = roll * attack_mod * base attack * cover")
+		self.app.write("  {}   =  {}  *    {}      *     {}      * {:2f}".format(
+			hit,
+			roll,
+			self.attack_mod,
+			self.attack,
+			(modifier/100),
+			))
 		time.sleep(1)
 
 		crit_roll = random.randint(1, 10)
@@ -102,7 +111,7 @@ class Character:
 		a parameter. Returns True is character dies, False if still alive.'''
 		
 		# defend roll
-		roll = random.randint(1, 20)
+		roll = random.randint(1, 5)
 		block = int(roll * self.defense_mod * self.defense)
 				
 		# Roll for dodge - must roll a 10 (1% chance)
@@ -133,6 +142,11 @@ class Character:
 				self.shield = 0
 			
 		# Reduce health
+		self.app.write("Block = roll * defense_mod * defense")
+		self.app.write(" {}   = {}   *     {}      *   {}".format(block, roll, self.defense_mod, self.defense))
+		self.app.write("Damage = Attack - Block")
+		self.app.write("  {}   =   {}   -  {}".format(damage, att_damage, block))
+		self.app.write("-"*20)
 		self.app.write(self.name + " suffers " + str(damage) + " damage!")
 		self.health = self.health - damage
 		time.sleep(1)

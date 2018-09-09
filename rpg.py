@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3
+#!/usr/local/bin/python3.6
 """
 rpg.py - entry point for the RPG Game
 
