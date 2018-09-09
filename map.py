@@ -28,6 +28,7 @@ def make_map(x, y, val, boundry=False):
 		map.append([])
 		for j in range(y):
 			map[-1].append("#")
+		map[len(map) - 1].append("#")
 	return map
 
 

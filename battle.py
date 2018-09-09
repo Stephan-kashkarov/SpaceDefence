@@ -233,10 +233,10 @@ class Battle:
 
 	def draw_map(self, player):
 		self.app.write("\n\n\n\n\n\n\n\n\n\n\n\n")
-		self.app.write("XXXXXXXXXXXXXX")
-		for i in range(player.battleY - 6, player.battleY + 6):
+		self.app.write("XXXXXXXXXXXXXXXX")
+		for i in range(player.battleY - 8, player.battleY + 8):
 			visible_map = 'X'
-			for j in range(player.battleX - 6, player.battleX + 6):
+			for j in range(player.battleX - 8, player.battleX + 8):
 				if j < 0 or i < 0:
 					visible_map += "."
 				elif j == player.battleX and i == player.battleY:
@@ -248,7 +248,7 @@ class Battle:
 						visible_map += "."
 			visible_map += "X"
 			self.app.write(visible_map)
-		self.app.write("XXXXXXXXXXXXXX")
+		self.app.write("XXXXXXXXXXXXXXXX")
 
 
 	def map(self, player, team):
@@ -288,29 +288,57 @@ class Battle:
 			except ValueError:
 				self.app.write("Invalid response/Move")
 				self.app.write("")
-				time.sleep(1)
 
 	def ai_map(self, enemy):
-		while True not in [self.can_see(enemy, player)[0] for player in self.players]:
+		players = [self.can_see(enemy, player) for player in self.players]
+		i = 0
+		while True not in players and i < 200:
 			self.draw_map(enemy)
-			i = 0
+			time.sleep(0.5)
 			while True:
-				if random.randint(0,1) == 1:
-					x = random.randint(-1, 1)
-					y = 0
-					res = self.move(enemy, y, x)
-					if res == 0:
+				if len([x[2] for x in players]) == 0:
+					if random.randint(0,1) == 1:
+						x = random.randint(-1, 1)
+						y = 0
+					else:
+						x = 0
+						y = random.randint(-1, 1)
+					res = self.move(y, x, enemy)
+					players = [self.can_see(enemy, player)[0] for player in self.players]
+					if True in players:
 						break
+					if res == 0:
+						self.battle_map[enemy.battleY][enemy.battleX] = "E"
+						break
+					else:
+						i += 1
+						if i > 200:
+							break
 				else:
-					x = 0
-					y = random.randint(-1, 1)
-					res = self.move(enemy, y, x)
-				i += 1
-				if i > 12:
-					return False
-			if enemy.adrenaline <= 0:
-				return False
-		return True
+					index = random.randint(0, len(players) - 1)
+					player = players[index][2]
+					while enemy.adrenaline >= 0:
+						if random.randint(0, 1) == 1:
+							x = 1 if player.battleX < enemy.battleX else 0
+							y = 0
+						else:
+							x = 0
+							y = 1 if player.battleY < enemy.battleY else 0
+						res = self.move(y, x, enemy)
+						if res == 0:
+							self.battle_map[enemy.battleY][enemy.battleX] = "E"
+							break
+						else:
+							i += 1
+							if i > 200:
+								break
+					break
+
+		output = []
+		for i, val in enumerate(players):
+			if val[0] != False:
+				output.append(self.players[i])
+		return output
 
 
 
@@ -318,16 +346,19 @@ class Battle:
 	def move(self, y, x, player):
 		x1 = player.battleX
 		y1 = player.battleY
-		if self.battle_map[y1 + y][x1 + x] == " " and player.adrenaline >= 5:
-			self.battle_map[y1][x1] = " "
-			self.battle_map[y1 + y][x1 + x] = "X"
-			player.battleX += x
-			player.battleY += y
-			player.adrenaline -= 5
-			return 0
-		elif player.adrenaline < 5:
-			return 1
-		else:
+		try:
+			if self.battle_map[y1 + y][x1 + x] == " " and player.adrenaline >= 5:
+				self.battle_map[y1][x1] = " "
+				self.battle_map[y1 + y][x1 + x] = "X"
+				player.battleX += x
+				player.battleY += y
+				player.adrenaline -= 5
+				return 0
+			elif player.adrenaline < 5:
+				return 1
+			else:
+				return 2
+		except IndexError:
 			return 2
 
 
@@ -337,8 +368,8 @@ class Battle:
 		current battle. The map contains:
 		 ~ 2 buildings
 		 ~ 8 benches
-		 ~ 4 friendly spawn points
-		 ~ 4 enemy spawn points
+		 ~ a few friendly spawn points
+		 ~ a few enemy spawn points
 		"""
 		self.initailised = True
 		benches = []
@@ -366,44 +397,59 @@ class Battle:
 					for i in range(y, y + 3):
 						self.battle_map[i][x] = 'o'
 		del benches
-		while len(self.spawnpoints) < len(self.players):
-			x = random.randint(1, (len(self.battle_map) - 1) / 4)
-			y = random.randint(1, (len(self.battle_map[0]) - 1) / 4)
-			if self.battle_map[y][x] == " ":
-				self.spawnpoints.append((x, y, 1))
-				self.battle_map[y][x] = 'A'
-		while len(self.spawnpoints) <= len(self.players) + len(self.enemies):
-			x = random.randint(int(3/4 * len(self.battle_map)) - 1, len(self.battle_map) - 2)
-			y = random.randint(int(3/4 * len(self.battle_map[0])) - 1, len(self.battle_map[0]) - 2)
-			if self.battle_map[y][x] == " ":
-				self.spawnpoints.append((x, y, 2))
-				self.battle_map[y][x] = 'E'
-		
+
+
 	def select_spawnpoints(self):
-		for i in range(0, len(self.players)):
-			if self.spawnpoints[i][2] == 1:
-				self.players[i].battleX = self.spawnpoints[i][0]
-				self.players[i].battleY = self.spawnpoints[i][1]
-		for i in range(3, len(self.enemies) + 3):
-			if self.spawnpoints[i][2] == 2:
-				self.enemies[i - 3].battleX = self.spawnpoints[i][0]
-				self.enemies[i - 3].battleY = self.spawnpoints[i][1]
+		for i in self.players:
+			while True:
+				x = random.randint(
+						1,
+						(len(self.battle_map) - 1) / 4
+					)
+				y = random.randint(
+						1,
+						(len(self.battle_map[0]) - 1) / 4
+					)
+				if self.battle_map[y][x] == " ":
+					self.spawnpoints.append((x, y, 1))
+					self.battle_map[y][x] = 'A'
+					break
+			i.battleX = x
+			i.battleY = y
+		for i in self.enemies:
+			while True:
+				x = random.randint(
+						int(3/4 * len(self.battle_map)) -1,
+						len(self.battle_map) - 2
+					)
+				y = random.randint(
+						int(3/4 * len(self.battle_map[0])) - 1,
+						len(self.battle_map[0]) - 2
+					)
+				if self.battle_map[y][x] == " ":
+					self.spawnpoints.append((x, y, 2))
+					self.battle_map[y][x] = 'E'
+					break
+			i.battleX = x
+			i.battleY = y
+			
+
 
 	def can_see(self, player1, player2):
 		if player2.battleX != player1.battleX:
-			gradient = (player2.battleY - player1.battleY) / \
+			gradient = (player2.battleY - player1.battleY) /\
 					   (player2.battleX - player1.battleX)
 		else:
 			gradient = 0
 		intercept = player1.battleY - (gradient * player1.battleX)
-		if player1.battleY < player2.battleY:
+		if player1.battleY < player2.battleY and player2.battleX != player1.battleX:
 			modifier = 100
 			for y in range(player1.battleY, player2.battleY):
 				x = int((y - intercept) / gradient)
 				modifier = self.get_mod(x, y, modifier)
 				if modifier == 0:
 					break
-		elif player1.battleY > player2.battleY:
+		elif player1.battleY > player2.battleY and player2.battleX != player1.battleX:
 			modifier = 100
 			for y in range(player2.battleY, player1.battleY):
 				x = int((y - intercept) / gradient)
@@ -417,7 +463,7 @@ class Battle:
 				modifier = self.get_mod(x, y, modifier)
 				if modifier == 0:
 					break
-		return (True, modifier) if modifier > 0 else False, 0
+		return (True, modifier, player2) if modifier > 0 else (False, 0, player2)
 
 	def get_mod(self, x, y, modifier):
 		if self.battle_map[y][x] == " ":
@@ -526,32 +572,34 @@ class Battle:
 
 			for enemy in self.enemies:
 				if enemy.health > 0 and not self.player_lost:
-					players = self.players
+					players = [x for x in self.players]
 					for player in players:
-						if not self.can_see(enemy, player):
+						if not self.can_see(enemy, player)[0]:
 							players.remove(player)
 					if not self.player_lost:
 						if len(players) == 0:
-							self.ai_map(enemy)
-						else:
-							for player in players:
-								mod = self.can_see(enemy, player)
-								loss = enemy.move(player, mod[1])
-								self.losses.append(loss)
-								if loss == True:
-									index = self.players.index(player)
-									self.app.write(
-											"{} the {} has perished on the field of battle".format(
-												player.name, player.__class__.__name__
-											)
+							players = self.ai_map(enemy)
+						if len(players) != 0:
+							player_index = random.randint(0, len(players) - 1)
+							player = players[player_index]
+							mod = self.can_see(enemy, player)
+							loss = enemy.move(player, mod[1])
+							self.losses.append(loss)
+							if loss == True:
+								index = self.players.index(player)
+								self.app.write(
+										"{} the {} has perished on the field of battle".format(
+											player.name, player.__class__.__name__
 										)
+									)
+								self.app.write("")
+								time.sleep(1)
+								self.players.pop(index)
+								if len(self.players) == 0:
+									self.player_lost = True
+									self.app.write("Your party has been killed by your enemies.")
 									self.app.write("")
 									time.sleep(1)
-									self.players.pop(index)
-									if len(self.players) == 0:
-										self.player_lost = True
-										self.app.write("Your party has been killed by your enemies.")
-										self.app.write("")
-										time.sleep(1)
-										self.player_lost = True
-										return None
+									self.player_lost = True
+									return None
+				enemy.adrenaline = enemy.max_adrenaline
