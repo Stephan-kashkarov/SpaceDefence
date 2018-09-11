@@ -9,7 +9,7 @@ Intermediate Programming Object-Oriented Assignment 2018
 """
 
 import time
-
+import map_
 import battle
 import character
 import gui
@@ -204,29 +204,6 @@ def set_difficulty():
 
 	return difficulty
 
-def create_enemies(mode, difficulty):
-	""" Create the enemies """
-	if mode == 2: # Alien Mode - good enemies
-		if difficulty == 'm':
-			enemies = [character.Support("Jensen", app), character.Support("Marsh", app), character.Support("Greenwood", app)]
-		elif difficulty == 'h':
-			enemies = [character.Heavy("Bear", app), character.Sniper("Eagle", app), character.Assault("Jock", app)]
-		elif difficulty == 'l':
-			enemies = [character.Assault("Jackson", app), character.Assault("Maximus", app), character.Psionic("Phoenix", app)]
-		else:
-			enemies = [character.Support("Fox", app), character.Support("Cheetah", app)]
-
-	else: # Human Mode - evil enemies
-		if difficulty == 'm':
-			enemies = [character.Sectoid("Sectoid 1", app), character.Floater("Floater", app), character.Sectoid("Sectoid 2", app)]
-		elif difficulty == 'h':
-			enemies = [character.Sectoid("Sectoid 1", app), character.Sectoid("Sectoid 2", app), character.Muton("Muton", app)]
-		elif difficulty == 'l':
-			enemies = [character.Sectoid("Sectoid", app), character.Muton("Muton", app), character.Ethereal("Ethereal", app)]
-		else:
-			enemies = [character.Floater("Floater 1", app), character.Floater("Floater 2", app)]
-
-	return enemies
 
 def quit_game():
 	""" Quits the game """
@@ -306,10 +283,8 @@ def startup():
 			ans = app.inputVariable.get()
 			if ans == 'n':
 				break
-	temp_players = [x for x in players]
 
 	difficulty = set_difficulty()
-	enemies = create_enemies(mode, difficulty)
 
 
 battles = 0
@@ -339,18 +314,19 @@ while True:
 		time.sleep(1)
 		break
 		
-temp_players = [x for x in players]
 difficulty = set_difficulty()
-enemies = create_enemies(mode, difficulty)
 
 while True:
-
-	encounter = battle.Battle(players, enemies, app)
-	battle_wins, battle_kills, flee = encounter.play()
-
-	battles += 1
-	wins += battle_wins
-	kills += battle_kills
+	move = map_.Map(player, 128, mode, difficulty, app)
+	while True:
+		enemies, leave = map_.run()
+		if leave:
+			break
+		encounter = battle.Battle(players, enemies, app)
+		battle_wins, battle_kills, flee = encounter.play()
+		battles += 1
+		wins += battle_wins
+		kills += battle_kills	
 
 	print_results()
 		
@@ -367,6 +343,7 @@ while True:
 		if reset:
 			startup()
 		else:
-			players = [x for x in temp_players]
+			for player in players:
+				player.reset()
 			for enemy in enemies:
 				enemy.reset()

@@ -10,7 +10,7 @@ Intermediate Programming Object-Oriented Assignment 2018
 
 # import modules
 import sys
-import map
+import map_
 import time
 import random
 
@@ -31,7 +31,7 @@ class Battle:
 		self.player_won = False
 		self.player_lost = False
 		self.losses = []
-		self.battle_map = map.make_map(16, 16, " ", boundry=True)
+		self.battle_map = map_.make_map(16, 16, " ", boundry=True)
 		self.spawnpoints = []
 		self.generate()
 		self.select_spawnpoints()
@@ -496,8 +496,6 @@ class Battle:
 			
 			for player in self.players:
 				while True:
-					player.adrenaline = player.max_adrenaline
-
 					player.print_status()
 					stance_choice = self.choose_stance()
 					player.set_stance(stance_choice)
@@ -550,7 +548,8 @@ class Battle:
 					turn_over = True
 					if not has_attacked:
 						turn_over = False
-					else:      
+					else:
+						player.adrenaline = player.max_adrenaline
 						self.player_won = True
 						for enemy in self.enemies:
 							if enemy.health > 0:
@@ -592,7 +591,6 @@ class Battle:
 							loss = enemy.move(player, mod[1])
 							self.losses.append(loss)
 							if loss == True:
-								index = self.players.index(player)
 								self.app.write(
 										"{} the {} has perished on the field of battle".format(
 											player.name, player.__class__.__name__
@@ -600,8 +598,11 @@ class Battle:
 									)
 								self.app.write("")
 								time.sleep(1)
-								self.players.pop(index)
-								if len(self.players) == 0:
+								game_over = True
+								for player in self.players:
+									if player.health > 0:
+										game_over = False
+								if game_over:
 									self.player_lost = True
 									self.app.write("Your party has been killed by your enemies.")
 									self.app.write("")
