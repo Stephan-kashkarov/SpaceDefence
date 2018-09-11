@@ -319,7 +319,7 @@ difficulty = set_difficulty()
 while True:
 	move = map_.Map(player, 128, mode, difficulty, app)
 	while True:
-		enemies, leave = map_.run()
+		enemies, leave = move.run()
 		if leave:
 			break
 		encounter = battle.Battle(players, enemies, app)

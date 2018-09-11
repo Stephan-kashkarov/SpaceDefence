@@ -35,8 +35,8 @@ def make_map(x, y, val, boundry=False):
 
 class Map(object):
 
-	def __init__(self, player, size, mode, difficulty, app):
-		self.player = player
+	def __init__(self, players, size, mode, difficulty, app):
+		self.player = Player_group(0, 0, players)
 		self.x = size
 		self.y = size
 		self.difficulty = difficulty
@@ -80,17 +80,17 @@ class Map(object):
 					else:
 						size = 4
 					for i in range(size):
-						group.append(character.Floater(names[2][0], app))
+						group.append(character.Floater(names[2][0], self.app))
 				elif self.difficulty == "m":
 					size = 4
 					for i in range(size):
 						if random.randint(0, 1) == 1:
 							if random.randint(0, 3) == 3:
-								group.append(character.Muton(names[2][2], app))
+								group.append(character.Muton(names[2][2], self.app))
 							else:
-								group.append(character.Sectoid(names[2][1], app))
+								group.append(character.Sectoid(names[2][1], self.app))
 						else:
-							group.append(character.Floater(names[2][0], app))
+							group.append(character.Floater(names[2][0], self.app))
 				elif self.difficulty == "h":
 					if random.randint(0, 3) == 1:
 						size = 4
@@ -99,11 +99,11 @@ class Map(object):
 					for i in range(size):
 						if random.randint(0, 1) == 1:
 							if random.randint(0, 10) == 10:
-								group.append(character.Ethereal(names[2][3], app))
+								group.append(character.Ethereal(names[2][3], self.app))
 							else:
-								group.append(character.Muton(names[2][2], app))
+								group.append(character.Muton(names[2][2], self.app))
 						else:
-							group.append(character.Sectoid(names[2][1], app))
+							group.append(character.Sectoid(names[2][1], self.app))
 				else:
 					if random.randint(0, 10) == 10:
 						size = 6
@@ -112,11 +112,11 @@ class Map(object):
 					for i in range(size):
 						if random.randint(0, 1) == 1:
 							if random.randint(0, 3) == 3:
-								group.append(character.Ethereal(names[2][3], app))
+								group.append(character.Ethereal(names[2][3], self.app))
 							else:
-								group.append(character.Muton(names[2][2], app))
+								group.append(character.Muton(names[2][2], self.app))
 						else:
-							group.append(character.Sectoid(names[2][1], app))
+							group.append(character.Sectoid(names[2][1], self.app))
 
 			# TODO make decisions for human AI
 			if team == 2:
@@ -129,6 +129,7 @@ class Map(object):
 				else:
 					size = 4
 			enemies.append(group)
+		return enemies
 
 	def draw(self):
 		self.app.write("X"*33)
@@ -150,20 +151,44 @@ class Map(object):
 		try:
 			if self.map[y1 + y][x1 + x] == " ":
 				self.map[y1][x1] = " "
-				self.map[y1 + y][x1 + x] = "X"
+				if obj.__class__.__name__ != "Ai_group":
+					self.map[y1 + y][x1 + x] = "X"
+				else:
+					self.map[y1 + y][x1 + x] = "E"
 				obj.x += x
 				obj.y += y
 				return True
-			else:
-				return False
+			elif obj.__class__.__name__ != "Ai_group":
+				if self.map[y1 + y][x1 + x] == "$":
+					obj.x += x
+					obj.y += y
+					return 'shop'
+				elif self.map[y1 + y][x1 + x] == "E":
+					obj.x += x
+					obj.y += y
+					return 'battle'
+				else:
+					return False
+			elif obj.__class__.__name__ == "Ai_group":
+				if self.map[y1 + y][x1 + x] == 'X':
+					obj.x += x
+					obj.y += y
+					return 'battle'
+				else:
+					return False
 		except IndexError:
 			return False
 
 	def run(self):
 		while True:
-			self.player_move()
-			self.ai_move()
-
+			situation, player, leave = self.player_move()
+			if situation == 'battle':
+				return player, False
+			if situation == 'shop':
+				player.run(player)
+			enemies = self.ai_move()
+			if enemies:
+				return enemies, False
 	def player_move(self):
 		while True:
 			self.draw()
@@ -191,11 +216,40 @@ class Map(object):
 					break
 				else:
 					raise ValueError
+				if move == 'battle':
+					for enemy in self.enemies:
+						if enemy.x == self.player.x and enemy.y == self.player.y:
+							return 'battle', enemy.enemies, False
 			except ValueError:
 				self.app.write("Invalid Input")
 
 	def ai_move(self):
-		pass
+		for group in self.enemies:
+			move = False
+			while not move:
+				if abs(self.player.x - group.x) < 16:
+					pass # * move towards player
+				else:
+					x_change = random.randint(-1, 1)
+					y_change = random.randint(-1, 1)
+				move = self.check(y_change, x_change, group)
+				if move == 'battle':
+					return self.enemies.enemies, False
+
+
+
+class Ai_group(object):
+	def __init__(self, x, y, enemies):
+		self.x = x
+		self.y = y
+		self.enemies = enemies
+
+class Player_group(object):
+	def __init__(self, x, y, players):
+		self.x = x
+		self.y = y
+		self.group_inventory = []
+		self.players = players
 
 
 
@@ -319,21 +373,8 @@ class Generator(object):
 					else:
 						exits.append(False)
 				print("Exit Status: {}, Len of Exits: {}/{}".format(True in exits, len(exits), len(self.rooms)**2))
-				if True in exits:
-					break
-			if True not in exits:
-				break
-		print("Bad")
-
-
-
-
-
-
-
-
-# testing
-
-if __name__ == '__main__':
-	a = Map(128, 128)
-	a.generate()
+		if True in exits:
+			break
+	if True not in exits:
+		break
+print("Bad")

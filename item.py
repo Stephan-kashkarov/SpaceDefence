@@ -7,6 +7,29 @@ for Intermediate Programming
 Python RPG Assignment 2018
 """
 
+import time
+import random
+
+class Shop(object):
+	def __init__(self, x, y, app):
+		self.x = x
+		self.y = y
+		self.items = []
+		self.app = app
+
+	def shop(self, playerobj):
+		self.app.write("Welcome to the Shop!")
+		self.app.write("")
+		time.sleep(1)
+		while True:
+			self.app.write("Select player:")
+			for i, player in enumerate(playerobj.players):
+				self.app.write("	{}. {}".format(i, player))
+			self.app.write("	e. exit ~ Warning ~ This will delete the shop for good")
+			self.app.wait_variable(self.app.inputVariable)
+			ans = self.app.inputVariable.get()
+
+
 class Item(object):
 	def __init__(self):
 		self.ammount = 1
