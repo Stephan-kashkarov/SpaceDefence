@@ -306,6 +306,7 @@ def startup():
 			ans = app.inputVariable.get()
 			if ans == 'n':
 				break
+	temp_players = [x for x in players]
 
 	difficulty = set_difficulty()
 	enemies = create_enemies(mode, difficulty)
@@ -338,7 +339,7 @@ while True:
 		time.sleep(1)
 		break
 		
-
+temp_players = [x for x in players]
 difficulty = set_difficulty()
 enemies = create_enemies(mode, difficulty)
 
@@ -366,6 +367,6 @@ while True:
 		if reset:
 			startup()
 		else:
-			player.reset()
+			players = [x for x in temp_players]
 			for enemy in enemies:
 				enemy.reset()

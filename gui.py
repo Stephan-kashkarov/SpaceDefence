@@ -73,4 +73,7 @@ class simpleapp_tk(Tk):
 		self.entry.focus_set()
 		
 	def quit(self):
-		sys.exit(0)
+		try:
+			sys.exit(0)
+		except:
+			quit() # ensures clean exit

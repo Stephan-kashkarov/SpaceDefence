@@ -174,11 +174,11 @@ class Battle:
 					self.app.write("No enemies visible!")
 				else:
 					# use j to give a number option
-					j = 1
+					j = 0
 					while j < len(enemies):
-						if enemies[j].health > 0:
+						if enemies[j - 1].health > 0:
 							self.app.write("{}. {} (Cover: {:2f})".format(
-								str(j),
+								str(j + 1),
 								enemies[j].name,
 								self.can_see(player, enemies[j])[1]
 							))
@@ -233,7 +233,7 @@ class Battle:
 
 	def draw_map(self, player):
 		self.app.write("\n\n\n\n\n\n\n\n\n\n\n\n")
-		self.app.write("XXXXXXXXXXXXXXXX")
+		self.app.write("XXXXXXXXXXXXXXXXXX")
 		for i in range(player.battleY - 8, player.battleY + 8):
 			visible_map = 'X'
 			for j in range(player.battleX - 8, player.battleX + 8):
@@ -248,7 +248,7 @@ class Battle:
 						visible_map += "."
 			visible_map += "X"
 			self.app.write(visible_map)
-		self.app.write("XXXXXXXXXXXXXXXX")
+		self.app.write("XXXXXXXXXXXXXXXXXX")
 
 
 	def map(self, player, team):
@@ -291,12 +291,13 @@ class Battle:
 
 	def ai_map(self, enemy):
 		players = [self.can_see(enemy, player) for player in self.players]
+		playersTF = [self.can_see(enemy, player)[0] for player in self.players]
 		i = 0
-		while True not in players and i < 200:
+		while True not in playersTF and i < 200:
 			self.draw_map(enemy)
 			time.sleep(0.5)
 			while True:
-				if len([x[2] for x in players]) == 0:
+				if True not in playersTF:
 					if random.randint(0,1) == 1:
 						x = random.randint(-1, 1)
 						y = 0
@@ -315,15 +316,19 @@ class Battle:
 						if i > 200:
 							break
 				else:
-					index = random.randint(0, len(players) - 1)
-					player = players[index][2]
+					while True:
+						index = random.randint(0, len(players) - 1)
+						player = players[index]
+						if player[0] == True:
+							player = player[2]
+							break
 					while enemy.adrenaline >= 0:
 						if random.randint(0, 1) == 1:
-							x = 1 if player.battleX < enemy.battleX else 0
+							x = 1 if player.battleX < enemy.battleX else -1
 							y = 0
 						else:
 							x = 0
-							y = 1 if player.battleY < enemy.battleY else 0
+							y = 1 if player.battleY < enemy.battleY else -1
 						res = self.move(y, x, enemy)
 						if res == 0:
 							self.battle_map[enemy.battleY][enemy.battleX] = "E"
@@ -336,7 +341,7 @@ class Battle:
 
 		output = []
 		for i, val in enumerate(players):
-			if val[0] != False:
+			if val != False:
 				output.append(self.players[i])
 		return output
 
@@ -374,8 +379,7 @@ class Battle:
 		self.initailised = True
 		benches = []
 		buildings = []
-		self.spawnpoints = []
-		while len(buildings) <= 2:
+		while len(buildings) <= 1:
 			x = random.randint(5, len(self.battle_map) - 7)
 			y = random.randint(5, len(self.battle_map[0]) - 7)
 			if self.battle_map[y][x] == " ":
@@ -442,23 +446,20 @@ class Battle:
 		else:
 			gradient = 0
 		intercept = player1.battleY - (gradient * player1.battleX)
-		if player1.battleY < player2.battleY and player2.battleX != player1.battleX:
+		if player1.battleY != player2.battleY:
 			modifier = 100
-			for y in range(player1.battleY, player2.battleY):
-				x = int((y - intercept) / gradient)
+			for y in range(player1.battleY, player2.battleY, (1) if player2.battleY > player1.battleY else (-1)):
+				if gradient == 0:
+					x = y
+				else:
+					x = int((y - intercept) / gradient)
 				modifier = self.get_mod(x, y, modifier)
 				if modifier == 0:
 					break
-		elif player1.battleY > player2.battleY and player2.battleX != player1.battleX:
-			modifier = 100
-			for y in range(player2.battleY, player1.battleY):
-				x = int((y - intercept) / gradient)
-				modifier = self.get_mod(x, y, modifier)
-				if modifier == 0:
-					break
+
 		else:
 			modifier = 100
-			for x in range(player1.battleX, player2.battleX, 1 if player1.battleX > player2.battleX else -1):
+			for x in range(player1.battleX, player2.battleX, 1 if player1.battleX < player2.battleX else -1):
 				y = int((gradient * x) + intercept)
 				modifier = self.get_mod(x, y, modifier)
 				if modifier == 0:
@@ -467,8 +468,8 @@ class Battle:
 
 	def get_mod(self, x, y, modifier):
 		if self.battle_map[y][x] == " ":
-			if modifier >= 20:
-				modifier -= 20
+			if modifier >= 5:
+				modifier -= 5
 			else:
 				return 0
 		elif self.battle_map[y][x] == "B":
@@ -494,72 +495,77 @@ class Battle:
 		while not self.player_won and not turn_over:
 			
 			for player in self.players:
-				player.adrenaline = player.max_adrenaline
+				while True:
+					player.adrenaline = player.max_adrenaline
 
-				player.print_status()
-				stance_choice = self.choose_stance()
-				player.set_stance(stance_choice)
-				
-				player_action = self.get_action(player)
-
-				has_attacked = False
-
-				if player_action == 5:
-					has_attacked = True
-
-				elif player_action == 4:
-					has_attacked = self.map(player, "A")
-
-				elif player_action == 3:
-					item_choice = self.select_item(player)
-					if item_choice != 0:
-						if item_choice == 1:
-							has_attacked = player.use_medikit()
-						else:
-							has_attacked = player.inventory[item_choice - 2].use(player)
-
-				elif player_action == 2:
-					ability_choice = self.select_ability(player)
-
-					if ability_choice != 0:
-						has_attacked = True
-						if ability_choice == 1 or ability_choice == 3:
-							target = self.choose_target(player)
-							if player.use_ability(ability_choice, self.enemies[target]):
-								self.kills += 1
-						else:
-							player.use_ability(ability_choice)
+					player.print_status()
+					stance_choice = self.choose_stance()
+					player.set_stance(stance_choice)
 					
-				elif player_action == 0: # if player flees 
-					return True # exit and make flee true
+					player_action = self.get_action(player)
 
-				else:
-					target = self.choose_target(player)
-					if target == False:
-						has_attacked = False
-					else:
-						target -= 1
+					has_attacked = False
+
+					if player_action == 5:
 						has_attacked = True
-						modifier = self.can_see(player, self.enemies[target])[1]
 
-						if player.attack_enemy(self.enemies[target], modifier):
-							self.kills += 1
-			
-				turn_over = True
-				if not has_attacked:
-					turn_over = False
-				else:      
-					self.player_won = True
-					for enemy in self.enemies:
-						if enemy.health > 0:
-							self.player_won = False
+					elif player_action == 4:
+						has_attacked = self.map(player, "A")
+
+					elif player_action == 3:
+						item_choice = self.select_item(player)
+						if item_choice != 0:
+							if item_choice == 1:
+								has_attacked = player.use_medikit()
+							else:
+								has_attacked = player.inventory[item_choice - 2].use(player)
+
+					elif player_action == 2:
+						ability_choice = self.select_ability(player)
+
+						if ability_choice != 0:
+							has_attacked = True
+							if ability_choice == 1 or ability_choice == 3:
+								target = self.choose_target(player)
+								if player.use_ability(ability_choice, self.enemies[target]):
+									self.kills += 1
+							else:
+								player.use_ability(ability_choice)
+						
+					elif player_action == 0: # if player flees 
+						return True # exit and make flee true
+
+					else:
+						target = self.choose_target(player)
+						if target == False:
+							has_attacked = False
+						else:
+							target -= 1
+							has_attacked = True
+							modifier = self.can_see(player, self.enemies[target])[1]
+
+							if player.attack_enemy(self.enemies[target], modifier):
+								self.kills += 1
+				
+					turn_over = True
+					if not has_attacked:
+						turn_over = False
+					else:      
+						self.player_won = True
+						for enemy in self.enemies:
+							if enemy.health > 0:
+								self.player_won = False
+								break
+
+						if self.player_won == True:
+							self.app.write("Your enemies have been vanquished!!")
+							self.app.write("")
+							time.sleep(1)
+							self.wins += 1
 							break
 
-					if self.player_won == True:
-						self.app.write("Your enemies have been vanquished!!")
-						self.app.write("")
-						time.sleep(1)
-						self.wins += 1
+					if turn_over:
+						break
 
 
 	def do_enemy_actions(self):

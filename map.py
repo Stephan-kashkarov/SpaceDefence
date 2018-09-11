@@ -16,19 +16,19 @@ def make_map(x, y, val, boundry=False):
 	map = []
 	if boundry:
 		map.append([])
-		for j in range(y):
+		for j in range(y + 1):
 			map[0].append("#")
 	for i in range(1, x):
 		if boundry:
-			map[-1].append("#")
 			map.append(["#"])
 		for j in range(1, y):
 			map[i].append(val)
+		if boundry:
+			map[i].append("#")
 	if boundry:
 		map.append([])
-		for j in range(y):
+		for j in range(y + 1):
 			map[-1].append("#")
-		map[len(map) - 1].append("#")
 	return map
 
 
