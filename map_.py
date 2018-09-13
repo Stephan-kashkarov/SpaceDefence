@@ -36,13 +36,13 @@ def make_map(x, y, val, boundry=False):
 class Map(object):
 
 	def __init__(self, players, size, mode, difficulty, app):
-		self.player = Player_group(0, 0, players)
+		self.app = app
+		self.map = make_map(size, size, " ", True)
+		self.player = Player_group(1, 1, players)
 		self.x = size
 		self.y = size
 		self.difficulty = difficulty
 		self.enemies = self.generate_enemies(int(size/8), mode)
-		self.app = app
-		self.map = make_map(size, size, " ", True)
 		
 
 		# self.map = Generator(128, 10)
@@ -128,22 +128,30 @@ class Map(object):
 					size = 3
 				else:
 					size = 4
+			while True:
+				x = random.randint(1, len(self.map) - 1)
+				y = random.randint(1, len(self.map) - 1)
+				if self.map[y][x] == " ":
+					break
+			group = Ai_group(x, y, enemies)
 			enemies.append(group)
 		return enemies
 
 	def draw(self):
-		self.app.write("X"*33)
+		self.app.write("X"*66)
 		for y in range(self.player.y - 16, self.player.y + 16):
+			row = "X"
 			if y >= len(self.map) or y < 0:
-				row = "X" + "."*31 + "X"
-				continue
-			for x in range(self.player.x - 16, self.player.x + 16):
-				if y >= len(self.map) or y < 0:
-					row += "."
-					continue
-				row += self.map[y][x]
+				row = "X" + "."*64
+			else:
+				for x in range(self.player.x - 32, self.player.x + 32):
+					if x >= len(self.map) or x < 0:
+						row += "."
+						continue
+					row += self.map[y][x]
+			row += "X"
 			self.app.write(row)
-		self.app.write("X"*33)
+		self.app.write("X"*66)
 
 	def check(self, y, x, obj):
 		x1 = obj.x
@@ -189,6 +197,8 @@ class Map(object):
 			enemies = self.ai_move()
 			if enemies:
 				return enemies, False
+
+
 	def player_move(self):
 		while True:
 			self.draw()
@@ -204,16 +214,12 @@ class Map(object):
 					self.app.quit()
 				elif move == "w" or move == "j":
 					move = self.check(-1, 0, self.player)
-					break
 				elif move == "s" or move == "k":
 					move = self.check(1, 0, self.player)
-					break
 				elif move == "a" or move == "h":
 					move = self.check(0, -1, self.player)
-					break
 				elif move == "d" or move == "l":
 					move = self.check(0, 1, self.player)
-					break
 				else:
 					raise ValueError
 				if move == 'battle':
@@ -234,7 +240,7 @@ class Map(object):
 					y_change = random.randint(-1, 1)
 				move = self.check(y_change, x_change, group)
 				if move == 'battle':
-					return self.enemies.enemies, False
+					return [x.enemies for x in self.enemies], False
 
 
 
@@ -260,10 +266,7 @@ class Room(object):
 	"""
 	def __init__(self, x1, y1, x2, y2, base):
 		"""initialiser for Room Object"""
-		self.x1 = x1
-		self.x2 = x2
-		self.y1 = y1
-		self.y2 = y2
+		self.points = [[x1, y1], [x2, y1], [x2, y2], [x1, y2]]
 		self.repr = base
 
 	def create(self):
@@ -271,8 +274,8 @@ class Room(object):
 		draws the object onto a blank map
 		for merger process
 		"""
-		for j in range(int(self.x1), int(self.x2)):
-				for k in range(self.y1, self.y2):
+		for j in range(int(self.points[0][0]), int(self.points[2][0])):
+				for k in range(self.points[0][1], self.points[2][1]):
 					self.repr[j][k] = 1
 
 		return self.repr
@@ -282,9 +285,13 @@ class Room(object):
 		this method takes in another room object and returns if the two rooms
 		are overlapping or not. This method is used in Map object's moveBoxes method
 		"""
-		if (int(room.x1) in range(int(self.x1), int(self.x2)) or int(room.x2) in range(int(self.x1), int(self.x2)))\
-		and(int(room.y1) in range(int(self.y1), int(self.y2)) or int(room.y2) in range(int(self.y1), int(self.y2))):
-			return True
+		intercept = []
+		for i, point in enumerate(self.points):
+			if point[0] in range(room.points[0][0], room.points[2][0])\
+			and point[1] in range(room.points[0][1], room.points[2][1]):
+				intercept.append(i)
+		if len(intercept):
+			return True, intercept
 		else:
 			return False
 
@@ -351,19 +358,32 @@ class Generator(object):
 				print("First | i: {}, room: {}". format(i, room))
 				for roomIndex in range(0, i): # loop through every room below current
 					room2 = self.roomlst[roomIndex] # shortens handle
-					x = room.x1 - room2.x1 # detects run
-					y = room.y1 - room2.y1 # detects rise
-					overlap = room.checkOverlap(room2)
-					while overlap: # while the roomlst are still overlapping
-						print("x1: {}, x2: {}, y1: {}, y2: {} | Overlap: {}".format(
-							room.x1, room.x2, room.y1, room.y2, overlap
-							)
-						)
-						room.x1 += math.sin(x) # sinwave move
-						room.x2 += math.sin(x) # sinwave move
-						room.y1 += math.sin(y) # sinwave move
-						room.y2 += math.sin(y) # sinwave move
-						overlap = room.checkOverlap(room2)
+					overlap, pnts = room.checkOverlap(room2)
+					if overlap:
+						x_dist, y_dist = [], []
+						for i, point in [(i, room.points[x]) for x in enumerate(pnts)]:
+							x1 = point[0]
+							y1 = point[1]
+							for point1 in room2.points:
+								y2 = point1[1]
+								x2 = point1[0]
+								x3 = abs(x1 - x2)
+								y3 = abs(y1 - y2)
+								x_dist.append((i, x3))
+								y_dist.append((i, y3))
+
+						if max([x[1] for x in x_dist]) > max(max([y[1] for y in y_dist])):
+							list_x = [x[1] for x in x_dist]
+							index = list_x.index(max(list_x))
+							corner = x_dist[index][0]
+							direction = "X"
+						else:
+							list_y = [y[1] for y in y_dist]
+							index = list_y.index(max(list_y))
+							corner = y_dist[index][0]
+							direction = "Y"
+						
+						# ! WORKING HERE
 			exits = []
 			for i, room in enumerate(self.roomlst): # grab each room and index
 				for roomIndex in range(i, len(self.rooms)): # loop through all rooms after current
@@ -373,8 +393,5 @@ class Generator(object):
 					else:
 						exits.append(False)
 				print("Exit Status: {}, Len of Exits: {}/{}".format(True in exits, len(exits), len(self.rooms)**2))
-		if True in exits:
-			break
-	if True not in exits:
-		break
-print("Bad")
+			if True in exits:
+				break
