@@ -8,9 +8,14 @@ Python RPG Assignment 2018
 """
 
 import math
-import character
 import random
-from pprint import pprint
+
+from numpy import array
+from scipy.spatial import Delaunay
+from scipy.sparse import csr_matrix
+from scipy.sparse.csgraph import minimum_spanning_tree
+
+import character
 
 
 def make_map(x, y, val, boundry=False):
@@ -270,6 +275,8 @@ class Room(object):
 	def __init__(self, x1, y1, x2, y2, base):
 		"""initialiser for Room Object"""
 		self.points = [[x1, y1], [x2, y1], [x2, y2], [x1, y2]]
+		self.area = abs(x1-x2) * abs(y1-y2)
+		self.centrePoint = [int((x1 + x2)/2), int((y1 + y2)/2)]
 		self.repr = base
 
 	def create(self):
@@ -304,7 +311,7 @@ class Generator(object):
 		This object generates the map and keeps track of its current situation 
 	"""
 
-	def __init__(self, size=255, rooms=10):
+	def __init__(self, size=255, rooms=40):
 		"""Initialiser for Map"""
 		self.x = size if size > 64 else 64
 		self.y = size if size > 64 else 64
@@ -334,7 +341,7 @@ class Generator(object):
 		self.createBoxes()
 		self.moveBoxes()
 		self.chooseMain()
-		self.web()
+		self.triangulate()
 
 
 	def createBoxes(self):
@@ -406,7 +413,6 @@ class Generator(object):
 								else:
 									point[1] += dist_down
 
-
 			exits = []
 			for i, room in enumerate(self.roomlst): # grab each room and index
 				for roomIndex in range(i, len(self.roomlst)): # loop through all rooms after current
@@ -419,18 +425,31 @@ class Generator(object):
 				break
 
 	def chooseMain(self):
-		avg = sum([room.size for room in self.roomlst])/len(self.roomlst)*1.25
+		avg = sum([room.area for room in self.roomlst])/len(self.roomlst)*1.25
 		for room in self.roomlst:
-			if room.size > avg:
+			if room.area >= avg:
 				self.hubs.append(room)
-				self.rooms.delete(room)
+				self.roomlst.remove(room)
 
-	# def web(self):
 
+	def triangulate(self):
+		centrePoints = []
+		for room in self.hubs:
+			centrePoints.append(room.centrePoint)
+		print(centrePoints)
+		points = array(centrePoints, dtype='int8')
+		triangles = Delaunay(points)
+		# tree = minimum_spanning_tree(triangles.points)
+		# ! WORKING HERE
+		print(dir(triangles))
 
 
 
 if __name__ == '__main__':
-	a = Generator(128, 10)
+	a = Generator(128, 50)
 	a.generate()
+	# for room in a.hubs:
+	# 	print(room.points)
+	# 	print(room.area)
+	# 	print(room.centrePoint)
 	print("YAY")
