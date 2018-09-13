@@ -19,13 +19,16 @@ def make_map(x, y, val, boundry=False):
 		map.append([])
 		for j in range(y + 1):
 			map[0].append("#")
-	for i in range(1, x):
+	for i in range(1 if boundry else 0, x):
 		if boundry:
 			map.append(["#"])
-		for j in range(1, y):
-			map[i].append(val)
-		if boundry:
+			for j in range(1, y):
+				map[i].append(val)
 			map[i].append("#")
+		else:
+			map.append([])
+			for j in range(y):
+				map[i].append(val)
 	if boundry:
 		map.append([])
 		for j in range(y + 1):
@@ -293,7 +296,7 @@ class Room(object):
 		if len(intercept):
 			return True, intercept
 		else:
-			return False
+			return False, None
 
 
 class Generator(object):
@@ -329,6 +332,7 @@ class Generator(object):
 		"""
 		self.createBoxes()
 		self.moveBoxes()
+		self.chooseMain()
 
 
 	def createBoxes(self):
@@ -355,43 +359,69 @@ class Generator(object):
 		exits = []
 		while moving: # while moving boxes
 			for i, room in enumerate(self.roomlst): # grab each room and index
-				print("First | i: {}, room: {}". format(i, room))
 				for roomIndex in range(0, i): # loop through every room below current
 					room2 = self.roomlst[roomIndex] # shortens handle
-					overlap, pnts = room.checkOverlap(room2)
-					if overlap:
-						x_dist, y_dist = [], []
-						for i, point in [(i, room.points[x]) for x in enumerate(pnts)]:
-							x1 = point[0]
-							y1 = point[1]
-							for point1 in room2.points:
-								y2 = point1[1]
-								x2 = point1[0]
-								x3 = abs(x1 - x2)
-								y3 = abs(y1 - y2)
-								x_dist.append((i, x3))
-								y_dist.append((i, y3))
+					overlap, pnts = room.checkOverlap(room2) # checks for overlap
+					if overlap: # if overlapping
+						x_dist, y_dist = [], [] # inits 2 lists
+						# iterates through only overlapping points
+						for i, point in [(i, room.points[x]) for i, x in enumerate(pnts)]:
+							x1 = point[0] # takes X of point
+							y1 = point[1] # takes Y of point
+							for point1 in room2.points: #iterates through points in second room
+								x2 = point1[0] # takes X of point
+								y2 = point1[1] # takes Y of point
+								x3 = abs(x1 - x2) # find difference
+								y3 = abs(y1 - y2) # find difference
+								x_dist.append((i, x3)) # appends difference and origianl point value
+								y_dist.append((i, y3)) # appends difference and origianl point value
 
-						if max([x[1] for x in x_dist]) > max(max([y[1] for y in y_dist])):
+						if max([x[1] for x in x_dist]) > max([y[1] for y in y_dist]):
 							list_x = [x[1] for x in x_dist]
 							index = list_x.index(max(list_x))
-							corner = x_dist[index][0]
-							direction = "X"
+							point = room.points[x_dist[index][0] - 1]
+							bot_x = room2.points[0][0] if room2.points[0][0] < room2.points[1][0] else room2.points[1][0] # takes Lowest x value of room2
+							top_x = room2.points[0][0] if room2.points[0][0] < room2.points[1][0] else room2.points[1][0] # takes Highest x value of room2
+							dist_up = abs(top_x - point[0])
+							dist_down = abs(bot_x - point[0])
+							for point in room.points:
+								if dist_up > dist_down:
+									point[0] += dist_up
+								else:
+									point[0] += dist_down
+							
 						else:
 							list_y = [y[1] for y in y_dist]
-							index = list_y.index(max(list_y))
-							corner = y_dist[index][0]
-							direction = "Y"
-						
-						# ! WORKING HERE
+							index = list_y.index(max(list_y)) 
+							point = room.points[y_dist[index][0] - 1]
+							bot_y = room2.points[0][1] if room2.points[0][1] < room2.points[1][1] else room2.points[1][1] # takes Lowest Y value of room2
+							top_y = room2.points[0][1] if room2.points[0][1] < room2.points[1][1] else room2.points[1][1] # takes Highest Y value of room2
+							dist_up = abs(top_y - point[1])
+							dist_down = abs(bot_y - point[1])
+							for point in room.points:
+								if dist_up > dist_down:
+									point[1] += dist_up
+								else:
+									point[1] += dist_down
+
+
 			exits = []
 			for i, room in enumerate(self.roomlst): # grab each room and index
-				for roomIndex in range(i, len(self.rooms)): # loop through all rooms after current
-					if room.checkOverlap(self.rooms[roomIndex]): # if they overlap
+				for roomIndex in range(i, len(self.roomlst)): # loop through all rooms after current
+					if room.checkOverlap(self.roomlst[roomIndex]): # if they overlap
 						exits.append(True)
 						break # start again
 					else:
 						exits.append(False)
-				print("Exit Status: {}, Len of Exits: {}/{}".format(True in exits, len(exits), len(self.rooms)**2))
 			if True in exits:
 				break
+
+	# def chooseMain(self):
+	# ! WORKING HERE
+
+
+
+if __name__ == '__main__':
+	a = Generator(128, 10)
+	a.generate()
+	print("YAY")
