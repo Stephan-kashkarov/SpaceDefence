@@ -306,11 +306,12 @@ class Generator(object):
 
 	def __init__(self, size=255, rooms=10):
 		"""Initialiser for Map"""
-		self.x = size if size > 128 else 128
-		self.y = size if size > 128 else 128
+		self.x = size if size > 64 else 64
+		self.y = size if size > 64 else 64
 		self.rooms = rooms
 		self.map = make_map(self.x, self.y, 0)
 		self.roomlst = []
+		self.hubs = []
 
 
 	def randomPoint(self):
@@ -333,6 +334,7 @@ class Generator(object):
 		self.createBoxes()
 		self.moveBoxes()
 		self.chooseMain()
+		self.web()
 
 
 	def createBoxes(self):
@@ -416,8 +418,15 @@ class Generator(object):
 			if True in exits:
 				break
 
-	# def chooseMain(self):
-	# ! WORKING HERE
+	def chooseMain(self):
+		avg = sum([room.size for room in self.roomlst])/len(self.roomlst)*1.25
+		for room in self.roomlst:
+			if room.size > avg:
+				self.hubs.append(room)
+				self.rooms.delete(room)
+
+	# def web(self):
+
 
 
 
