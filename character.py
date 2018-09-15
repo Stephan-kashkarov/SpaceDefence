@@ -33,6 +33,7 @@ class Character:
 		self.app = app
 		self.battleX = 0
 		self.battleY = 0
+		self.money = 10
 
 	def __str__(self):
 		""" string representation of character """

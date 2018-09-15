@@ -133,12 +133,12 @@ class Map(object):
 					else:
 						size = 3
 					for i in range(size):
-						rand_name = names[1][random.randint(0, len(names[1] - 1))]
+						rand_name = names[1][random.randint(0, len(names[1]) - 1)]
 						group.append(character.Assault(rand_name, self.app))
 				elif self.difficulty == "m":
 					size = 3
 					for i in range(size):
-						rand_name = names[1][random.randint(0, len(names[1] - 1))]
+						rand_name = names[1][random.randint(0, len(names[1]) - 1)]
 						if random.randint(0, 1) == 1:
 							if random.randint(0, 3) == 3:
 								group.append(character.Heavy(rand_name, self.app))
@@ -152,7 +152,7 @@ class Map(object):
 					else:
 						size = 4
 					for i in range(size):
-						rand_name = names[1][random.randint(0, len(names[1] - 1))]
+						rand_name = names[1][random.randint(0, len(names[1]) - 1)]
 						if random.randint(0, 1) == 1:
 							if random.randint(0, 10) == 10:
 								group.append(character.Ethereal(rand_name, self.app))
@@ -166,7 +166,7 @@ class Map(object):
 					else:
 						size = 4
 					for i in range(size):
-						rand_name = names[1][random.randint(0, len(names[1] - 1))]
+						rand_name = names[1][random.randint(0, len(names[1]) - 1)]
 						if random.randint(0, 1) == 1:
 							if random.randint(0, 3) == 3:
 								group.append(character.Support(rand_name, self.app))
@@ -215,10 +215,12 @@ class Map(object):
 				return True
 			elif obj.__class__.__name__ != "Ai_group":
 				if self.map[y1 + y][x1 + x] == "$":
+					self.map[y1][x1] = " "
 					obj.x += x
 					obj.y += y
 					return 'shop'
 				elif self.map[y1 + y][x1 + x] == "E":
+					self.map[y1][x1] = " "
 					obj.x += x
 					obj.y += y
 					return 'battle'
@@ -226,6 +228,7 @@ class Map(object):
 					return False
 			elif obj.__class__.__name__ == "Ai_group":
 				if self.map[y1 + y][x1 + x] == 'X':
+					self.map[y1][x1] = " "
 					obj.x += x
 					obj.y += y
 					return 'battle'
@@ -274,7 +277,9 @@ class Map(object):
 				if move == 'battle':
 					for enemy in self.enemies:
 						if enemy.x == self.player.x and enemy.y == self.player.y:
-							return 'battle', enemy.enemies, False
+							enemies = enemy.enemies
+							self.enemies.remove(enemy)
+							return 'battle', enemies, False
 				elif move == True:
 					return False, None, False
 			except ValueError:
@@ -305,7 +310,9 @@ class Map(object):
 					y_change = random.randint(-1, 1)
 				move = self.check(y_change, x_change, group)
 				if move == 'battle':
-					return group.enemies
+					enemies = group.enemies
+					self.enemies.remove(group)
+					return enemies
 				elif playerclose == True and move == False:
 					return None
 
@@ -399,7 +406,7 @@ class Player_group(object):
 # 		"""
 # 		self.createBoxes()
 # 		self.moveBoxes()
-# 		self.chooseMain()
+# 		self.chooseMainRooms()
 # 		self.triangulate()
 
 
@@ -447,7 +454,7 @@ class Player_group(object):
 # 						if max([x[1] for x in x_dist]) > max([y[1] for y in y_dist]):
 # 							list_x = [x[1] for x in x_dist]
 # 							index = list_x.index(max(list_x))
-# 							point = room.points[x_dist[index][0] - 1]
+# 							point = room.points[x_dist[index][0]] - 1
 # 							bot_x = room2.points[0][0] if room2.points[0][0] < room2.points[1][0] else room2.points[1][0] # takes Lowest x value of room2
 # 							top_x = room2.points[0][0] if room2.points[0][0] < room2.points[1][0] else room2.points[1][0] # takes Highest x value of room2
 # 							dist_up = abs(top_x - point[0])
@@ -483,7 +490,7 @@ class Player_group(object):
 # 			if True in exits:
 # 				break
 
-# 	def chooseMain(self):
+# 	def chooseMainRooms(self):
 # 		avg = sum([room.area for room in self.roomlst])/len(self.roomlst)*1.25
 # 		for room in self.roomlst:
 # 			if room.area >= avg:

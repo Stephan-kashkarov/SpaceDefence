@@ -323,10 +323,12 @@ while True:
 		if leave:
 			break
 		encounter = battle.Battle(players, enemies, app)
-		battle_wins, battle_kills, flee = encounter.play()
+		battle_wins, battle_kills, loss = encounter.play()
 		battles += 1
 		wins += battle_wins
-		kills += battle_kills	
+		kills += battle_kills
+		if loss:
+			break
 
 	print_results()
 		

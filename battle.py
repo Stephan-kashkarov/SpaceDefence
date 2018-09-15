@@ -51,8 +51,10 @@ class Battle:
 			# This is where the bulk of the battle takes place
 			flee = self.do_player_actions()
 			if flee:
+				return (self.wins, self.kills, False)
+			loss = self.do_enemy_actions()
+			if loss:
 				return (self.wins, self.kills, True)
-			self.do_enemy_actions()
 			
 			# advance turn counter
 			self.turn += 1
@@ -609,5 +611,5 @@ class Battle:
 									self.app.write("")
 									time.sleep(1)
 									self.player_lost = True
-									return None
+									return True
 				enemy.adrenaline = enemy.max_adrenaline
