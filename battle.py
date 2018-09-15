@@ -193,7 +193,9 @@ class Battle:
 				target = int(target)
 				if target == 0:
 					return False
-				if not (target < len(self.enemies) and target >= 0) or self.enemies[target].health <= 0:
+				else:
+					target += 1
+				if not (target < len(self.enemies)):
 					raise ValueError
 				else:
 					break
@@ -304,8 +306,8 @@ class Battle:
 						x = 0
 						y = random.randint(-1, 1)
 					res = self.move(y, x, enemy)
-					players = [self.can_see(enemy, player)[0] for player in self.players]
-					if True in players:
+					playersTF = [self.can_see(enemy, player)[0] for player in self.players]
+					if True in playersTF:
 						break
 					if res == 0:
 						self.battle_map[enemy.battleY][enemy.battleX] = "E"

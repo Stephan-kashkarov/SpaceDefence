@@ -126,16 +126,51 @@ class Map(object):
 						else:
 							group.append(character.Sectoid(names[2][1], self.app))
 
-			# TODO make decisions for human AI
 			if team == 2:
 				if self.difficulty == "e":
-					size = 2
+					if random.randint(0, 3) == 1:
+						size = 2
+					else:
+						size = 3
+					for i in range(size):
+						group.append(character.Assault(names[2][0], self.app))
 				elif self.difficulty == "m":
 					size = 3
+					for i in range(size):
+						if random.randint(0, 1) == 1:
+							if random.randint(0, 3) == 3:
+								group.append(character.Heavy(names[2][2], self.app))
+							else:
+								group.append(character.Sniper(names[2][1], self.app))
+						else:
+							group.append(character.Assault(names[2][0], self.app))
 				elif self.difficulty == "h":
-					size = 3
+					if random.randint(0, 3) == 1:
+						size = 3
+					else:
+						size = 4
+					for i in range(size):
+						if random.randint(0, 1) == 1:
+							if random.randint(0, 10) == 10:
+								group.append(character.Ethereal(names[2][3], self.app))
+							else:
+								group.append(character.Heavy(names[2][2], self.app))
+						else:
+							group.append(character.Sniper(names[2][1], self.app))
 				else:
-					size = 4
+					if random.randint(0, 10) == 10:
+						size = 5
+					else:
+						size = 4
+					for i in range(size):
+						if random.randint(0, 1) == 1:
+							if random.randint(0, 3) == 3:
+								group.append(character.Support(names[2][3], self.app))
+							else:
+								group.append(character.Heavy(names[2][2], self.app))
+						else:
+							group.append(character.Sniper(names[2][1], self.app))
+
 			while True:
 				x = random.randint(1, len(self.map) - 1)
 				y = random.randint(1, len(self.map) - 1)
