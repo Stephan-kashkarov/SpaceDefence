@@ -133,43 +133,47 @@ class Map(object):
 					else:
 						size = 3
 					for i in range(size):
-						group.append(character.Assault(names[2][0], self.app))
+						rand_name = names[1][random.randint(0, len(names[1] - 1))]
+						group.append(character.Assault(rand_name, self.app))
 				elif self.difficulty == "m":
 					size = 3
 					for i in range(size):
+						rand_name = names[1][random.randint(0, len(names[1] - 1))]
 						if random.randint(0, 1) == 1:
 							if random.randint(0, 3) == 3:
-								group.append(character.Heavy(names[2][2], self.app))
+								group.append(character.Heavy(rand_name, self.app))
 							else:
-								group.append(character.Sniper(names[2][1], self.app))
+								group.append(character.Sniper(rand_name, self.app))
 						else:
-							group.append(character.Assault(names[2][0], self.app))
+							group.append(character.Assault(rand_name, self.app))
 				elif self.difficulty == "h":
 					if random.randint(0, 3) == 1:
 						size = 3
 					else:
 						size = 4
 					for i in range(size):
+						rand_name = names[1][random.randint(0, len(names[1] - 1))]
 						if random.randint(0, 1) == 1:
 							if random.randint(0, 10) == 10:
-								group.append(character.Ethereal(names[2][3], self.app))
+								group.append(character.Ethereal(rand_name, self.app))
 							else:
-								group.append(character.Heavy(names[2][2], self.app))
+								group.append(character.Heavy(rand_name, self.app))
 						else:
-							group.append(character.Sniper(names[2][1], self.app))
+							group.append(character.Sniper(rand_name, self.app))
 				else:
 					if random.randint(0, 10) == 10:
 						size = 5
 					else:
 						size = 4
 					for i in range(size):
+						rand_name = names[1][random.randint(0, len(names[1] - 1))]
 						if random.randint(0, 1) == 1:
 							if random.randint(0, 3) == 3:
-								group.append(character.Support(names[2][3], self.app))
+								group.append(character.Support(rand_name, self.app))
 							else:
-								group.append(character.Heavy(names[2][2], self.app))
+								group.append(character.Heavy(rand_name, self.app))
 						else:
-							group.append(character.Sniper(names[2][1], self.app))
+							group.append(character.Sniper(rand_name, self.app))
 
 			while True:
 				x = random.randint(1, len(self.map) - 1)
