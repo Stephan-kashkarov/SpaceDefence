@@ -317,7 +317,7 @@ while True:
 difficulty = set_difficulty()
 
 while True:
-	move = map_.Map(player, 128, mode, difficulty, app)
+	move = map_.Map(player, 32, mode, difficulty, app)
 	while True:
 		enemies, leave = move.run()
 		if leave:

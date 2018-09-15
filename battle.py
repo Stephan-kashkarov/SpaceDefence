@@ -166,7 +166,7 @@ class Battle:
 		while True:
 			enemies = [x for x in self.enemies]
 			for i, enemy in [x for x in enumerate(enemies)][::-1]:
-				if not self.can_see(player, enemy)[0]:
+				if not self.can_see(player, enemy)[0] or enemy.health <= 0:
 					enemies.pop(i)
 			try:
 				self.app.write("Choose your target:")
@@ -176,12 +176,11 @@ class Battle:
 					# use j to give a number option
 					j = 0
 					while j < len(enemies):
-						if enemies[j - 1].health > 0:
-							self.app.write("{}. {} (Cover: {:2f})".format(
-								str(j + 1),
-								enemies[j].name,
-								self.can_see(player, enemies[j])[1]
-							))
+						self.app.write("{}. {} (Cover: {:2f})".format(
+							str(j + 1),
+							enemies[j].name,
+							self.can_see(player, enemies[j])[1]
+						))
 						j += 1
 				self.app.write("0. Cancel")
 				self.app.write("")

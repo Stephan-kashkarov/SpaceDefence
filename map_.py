@@ -10,10 +10,10 @@ Python RPG Assignment 2018
 import math
 import random
 
-from numpy import array
-from scipy.spatial import Delaunay
-from scipy.sparse import csr_matrix
-from scipy.sparse.csgraph import minimum_spanning_tree
+# from numpy import array
+# from scipy.spatial import Delaunay
+# from scipy.sparse import csr_matrix
+# from scipy.sparse.csgraph import minimum_spanning_tree
 
 import character
 
@@ -141,7 +141,7 @@ class Map(object):
 				y = random.randint(1, len(self.map) - 1)
 				if self.map[y][x] == " ":
 					break
-			group = Ai_group(x, y, enemies)
+			group = Ai_group(x, y, group)
 			enemies.append(group)
 		return enemies
 
@@ -198,9 +198,11 @@ class Map(object):
 	def run(self):
 		while True:
 			situation, player, leave = self.player_move()
-			if situation == 'battle':
+			if leave == True:
+				return None, True
+			elif situation == 'battle':
 				return player, False
-			if situation == 'shop':
+			elif situation == 'shop':
 				player.run(player)
 			enemies = self.ai_move()
 			if enemies:
@@ -234,21 +236,39 @@ class Map(object):
 					for enemy in self.enemies:
 						if enemy.x == self.player.x and enemy.y == self.player.y:
 							return 'battle', enemy.enemies, False
+				elif move == True:
+					return False, None, False
 			except ValueError:
 				self.app.write("Invalid Input")
 
 	def ai_move(self):
 		for group in self.enemies:
 			move = False
+			playerclose = False
 			while not move:
-				if abs(self.player.x - group.x) < 16:
-					pass # * move towards player
+				if abs(self.player.x - group.x) < 16 and abs(self.player.y - group.y) < 16:
+					playerclose = True
+					if self.player.x > group.x:
+						x_change = 1
+					elif self.player.x < group.x:
+						x_change = -1
+					else:
+						x_change = 0
+
+					if self.player.y > group.y:
+						y_change = 1
+					elif self.player.y < group.y:
+						y_change = -1
+					else:
+						y_change = 0
 				else:
 					x_change = random.randint(-1, 1)
 					y_change = random.randint(-1, 1)
 				move = self.check(y_change, x_change, group)
 				if move == 'battle':
-					return [x.enemies for x in self.enemies], False
+					return group.enemies
+				elif playerclose == True and move == False:
+					return None
 
 
 
@@ -266,190 +286,191 @@ class Player_group(object):
 		self.players = players
 
 
+""" BELOW IS UNFINISHED/BROKEN GENERATOR IMPLEMENTATION """
 
-class Room(object):
-	"""Room Object ~
-		Keeps data for a single room in the
-		map with data such as size and type
-	"""
-	def __init__(self, x1, y1, x2, y2, base):
-		"""initialiser for Room Object"""
-		self.points = [[x1, y1], [x2, y1], [x2, y2], [x1, y2]]
-		self.area = abs(x1-x2) * abs(y1-y2)
-		self.centrePoint = [int((x1 + x2)/2), int((y1 + y2)/2)]
-		self.repr = base
+# class Room(object):
+# 	"""Room Object ~
+# 		Keeps data for a single room in the
+# 		map with data such as size and type
+# 	"""
+# 	def __init__(self, x1, y1, x2, y2, base):
+# 		"""initialiser for Room Object"""
+# 		self.points = [[x1, y1], [x2, y1], [x2, y2], [x1, y2]]
+# 		self.area = abs(x1-x2) * abs(y1-y2)
+# 		self.centrePoint = [int((x1 + x2)/2), int((y1 + y2)/2)]
+# 		self.repr = base
 
-	def create(self):
-		""" Create Method ~
-		draws the object onto a blank map
-		for merger process
-		"""
-		for j in range(int(self.points[0][0]), int(self.points[2][0])):
-				for k in range(self.points[0][1], self.points[2][1]):
-					self.repr[j][k] = 1
+# 	def create(self):
+# 		""" Create Method ~
+# 		draws the object onto a blank map
+# 		for merger process
+# 		"""
+# 		for j in range(int(self.points[0][0]), int(self.points[2][0])):
+# 				for k in range(self.points[0][1], self.points[2][1]):
+# 					self.repr[j][k] = 1
 
-		return self.repr
+# 		return self.repr
 
-	def checkOverlap(self, room):
-		"""Check overlap Method ~
-		this method takes in another room object and returns if the two rooms
-		are overlapping or not. This method is used in Map object's moveBoxes method
-		"""
-		intercept = []
-		for i, point in enumerate(self.points):
-			if point[0] in range(room.points[0][0], room.points[2][0])\
-			and point[1] in range(room.points[0][1], room.points[2][1]):
-				intercept.append(i)
-		if len(intercept):
-			return True, intercept
-		else:
-			return False, None
+# 	def checkOverlap(self, room):
+# 		"""Check overlap Method ~
+# 		this method takes in another room object and returns if the two rooms
+# 		are overlapping or not. This method is used in Map object's moveBoxes method
+# 		"""
+# 		intercept = []
+# 		for i, point in enumerate(self.points):
+# 			if point[0] in range(room.points[0][0], room.points[2][0])\
+# 			and point[1] in range(room.points[0][1], room.points[2][1]):
+# 				intercept.append(i)
+# 		if len(intercept):
+# 			return True, intercept
+# 		else:
+# 			return False, None
 
+# class Generator(object):
+# 	"""Generator object ~ 
+# 		This object generates the map and keeps track of its current situation 
+# 	"""
 
-class Generator(object):
-	"""Generator object ~ 
-		This object generates the map and keeps track of its current situation 
-	"""
-
-	def __init__(self, size=255, rooms=40):
-		"""Initialiser for Map"""
-		self.x = size if size > 64 else 64
-		self.y = size if size > 64 else 64
-		self.rooms = rooms
-		self.map = make_map(self.x, self.y, 0)
-		self.roomlst = []
-		self.hubs = []
-
-
-	def randomPoint(self):
-		"""random Point Method ~
-		Selects a random point within defined space
-		"""
-		# mid rect width, height 20%
-		x = random.randint(abs((self.x / 2) - self.x / 8),
-						   abs((self.x / 2) + self.x / 8))
-		y = random.randint(abs((self.y / 2) - self.y / 8),
-						   abs((self.y / 2) + self.y / 8))
-		return x, y
+# 	def __init__(self, size=255, rooms=40):
+# 		"""Initialiser for Map"""
+# 		self.x = size if size > 64 else 64
+# 		self.y = size if size > 64 else 64
+# 		self.rooms = rooms
+# 		self.map = make_map(self.x, self.y, 0)
+# 		self.roomlst = []
+# 		self.hubs = []
 
 
-	def generate(self):
-		"""generate Method ~
-		Contains the correct order of calls for a map to be generated.
-		 -> Called in the initaliser
-		"""
-		self.createBoxes()
-		self.moveBoxes()
-		self.chooseMain()
-		self.triangulate()
+# 	def randomPoint(self):
+# 		"""random Point Method ~
+# 		Selects a random point within defined space
+# 		"""
+# 		# mid rect width, height 20%
+# 		x = random.randint(abs((self.x / 2) - self.x / 8),
+# 						   abs((self.x / 2) + self.x / 8))
+# 		y = random.randint(abs((self.y / 2) - self.y / 8),
+# 						   abs((self.y / 2) + self.y / 8))
+# 		return x, y
 
 
-	def createBoxes(self):
-		""" Create Boxes method
-		This method creates a bunch of boxes in a small space on
-		the map. This allows for the initial generation of the
-		rooms on the map before the moveBoxes method is called.
-		"""
-		for i in range(self.rooms):
-			x1, y1 = self.randomPoint()
-			x2, y2 = self.randomPoint()
-			a = Room(x1, y1, x2, y2, self.map)
-			self.roomlst.append(a)
+# 	def generate(self):
+# 		"""generate Method ~
+# 		Contains the correct order of calls for a map to be generated.
+# 		 -> Called in the initaliser
+# 		"""
+# 		self.createBoxes()
+# 		self.moveBoxes()
+# 		self.chooseMain()
+# 		self.triangulate()
 
 
-	def moveBoxes(self):
-		""" Move Boxes Method ~
-		This method is used to separate all the overlapping boxes
-		created by the Create boxes method. This it to allow for
-		the rooms to finalise their position in the maze before
-		the rooms are purged.
-		"""
-		moving = True
-		exits = []
-		while moving: # while moving boxes
-			for i, room in enumerate(self.roomlst): # grab each room and index
-				for roomIndex in range(0, i): # loop through every room below current
-					room2 = self.roomlst[roomIndex] # shortens handle
-					overlap, pnts = room.checkOverlap(room2) # checks for overlap
-					if overlap: # if overlapping
-						x_dist, y_dist = [], [] # inits 2 lists
-						# iterates through only overlapping points
-						for i, point in [(i, room.points[x]) for i, x in enumerate(pnts)]:
-							x1 = point[0] # takes X of point
-							y1 = point[1] # takes Y of point
-							for point1 in room2.points: #iterates through points in second room
-								x2 = point1[0] # takes X of point
-								y2 = point1[1] # takes Y of point
-								x3 = abs(x1 - x2) # find difference
-								y3 = abs(y1 - y2) # find difference
-								x_dist.append((i, x3)) # appends difference and origianl point value
-								y_dist.append((i, y3)) # appends difference and origianl point value
+# 	def createBoxes(self):
+# 		""" Create Boxes method
+# 		This method creates a bunch of boxes in a small space on
+# 		the map. This allows for the initial generation of the
+# 		rooms on the map before the moveBoxes method is called.
+# 		"""
+# 		for i in range(self.rooms):
+# 			x1, y1 = self.randomPoint()
+# 			x2, y2 = self.randomPoint()
+# 			a = Room(x1, y1, x2, y2, self.map)
+# 			self.roomlst.append(a)
 
-						if max([x[1] for x in x_dist]) > max([y[1] for y in y_dist]):
-							list_x = [x[1] for x in x_dist]
-							index = list_x.index(max(list_x))
-							point = room.points[x_dist[index][0] - 1]
-							bot_x = room2.points[0][0] if room2.points[0][0] < room2.points[1][0] else room2.points[1][0] # takes Lowest x value of room2
-							top_x = room2.points[0][0] if room2.points[0][0] < room2.points[1][0] else room2.points[1][0] # takes Highest x value of room2
-							dist_up = abs(top_x - point[0])
-							dist_down = abs(bot_x - point[0])
-							for point in room.points:
-								if dist_up > dist_down:
-									point[0] += dist_up
-								else:
-									point[0] += dist_down
+
+# 	def moveBoxes(self):
+# 		""" Move Boxes Method ~
+# 		This method is used to separate all the overlapping boxes
+# 		created by the Create boxes method. This it to allow for
+# 		the rooms to finalise their position in the maze before
+# 		the rooms are purged.
+# 		"""
+# 		moving = True
+# 		exits = []
+# 		while moving: # while moving boxes
+# 			for i, room in enumerate(self.roomlst): # grab each room and index
+# 				for roomIndex in range(0, i): # loop through every room below current
+# 					room2 = self.roomlst[roomIndex] # shortens handle
+# 					overlap, pnts = room.checkOverlap(room2) # checks for overlap
+# 					if overlap: # if overlapping
+# 						x_dist, y_dist = [], [] # inits 2 lists
+# 						# iterates through only overlapping points
+# 						for i, point in [(i, room.points[x]) for i, x in enumerate(pnts)]:
+# 							x1 = point[0] # takes X of point
+# 							y1 = point[1] # takes Y of point
+# 							for point1 in room2.points: #iterates through points in second room
+# 								x2 = point1[0] # takes X of point
+# 								y2 = point1[1] # takes Y of point
+# 								x3 = abs(x1 - x2) # find difference
+# 								y3 = abs(y1 - y2) # find difference
+# 								x_dist.append((i, x3)) # appends difference and origianl point value
+# 								y_dist.append((i, y3)) # appends difference and origianl point value
+
+# 						if max([x[1] for x in x_dist]) > max([y[1] for y in y_dist]):
+# 							list_x = [x[1] for x in x_dist]
+# 							index = list_x.index(max(list_x))
+# 							point = room.points[x_dist[index][0] - 1]
+# 							bot_x = room2.points[0][0] if room2.points[0][0] < room2.points[1][0] else room2.points[1][0] # takes Lowest x value of room2
+# 							top_x = room2.points[0][0] if room2.points[0][0] < room2.points[1][0] else room2.points[1][0] # takes Highest x value of room2
+# 							dist_up = abs(top_x - point[0])
+# 							dist_down = abs(bot_x - point[0])
+# 							for point in room.points:
+# 								if dist_up > dist_down:
+# 									point[0] += dist_up
+# 								else:
+# 									point[0] += dist_down
 							
-						else:
-							list_y = [y[1] for y in y_dist]
-							index = list_y.index(max(list_y)) 
-							point = room.points[y_dist[index][0] - 1]
-							bot_y = room2.points[0][1] if room2.points[0][1] < room2.points[1][1] else room2.points[1][1] # takes Lowest Y value of room2
-							top_y = room2.points[0][1] if room2.points[0][1] < room2.points[1][1] else room2.points[1][1] # takes Highest Y value of room2
-							dist_up = abs(top_y - point[1])
-							dist_down = abs(bot_y - point[1])
-							for point in room.points:
-								if dist_up > dist_down:
-									point[1] += dist_up
-								else:
-									point[1] += dist_down
+# 						else:
+# 							list_y = [y[1] for y in y_dist]
+# 							index = list_y.index(max(list_y)) 
+# 							point = room.points[y_dist[index][0] - 1]
+# 							bot_y = room2.points[0][1] if room2.points[0][1] < room2.points[1][1] else room2.points[1][1] # takes Lowest Y value of room2
+# 							top_y = room2.points[0][1] if room2.points[0][1] < room2.points[1][1] else room2.points[1][1] # takes Highest Y value of room2
+# 							dist_up = abs(top_y - point[1])
+# 							dist_down = abs(bot_y - point[1])
+# 							for point in room.points:
+# 								if dist_up > dist_down:
+# 									point[1] += dist_up
+# 								else:
+# 									point[1] += dist_down
 
-			exits = []
-			for i, room in enumerate(self.roomlst): # grab each room and index
-				for roomIndex in range(i, len(self.roomlst)): # loop through all rooms after current
-					if room.checkOverlap(self.roomlst[roomIndex]): # if they overlap
-						exits.append(True)
-						break # start again
-					else:
-						exits.append(False)
-			if True in exits:
-				break
+# 			exits = []
+# 			for i, room in enumerate(self.roomlst): # grab each room and index
+# 				for roomIndex in range(i, len(self.roomlst)): # loop through all rooms after current
+# 					if room.checkOverlap(self.roomlst[roomIndex]): # if they overlap
+# 						exits.append(True)
+# 						break # start again
+# 					else:
+# 						exits.append(False)
+# 			if True in exits:
+# 				break
 
-	def chooseMain(self):
-		avg = sum([room.area for room in self.roomlst])/len(self.roomlst)*1.25
-		for room in self.roomlst:
-			if room.area >= avg:
-				self.hubs.append(room)
-				self.roomlst.remove(room)
-
-
-	def triangulate(self):
-		centrePoints = []
-		for room in self.hubs:
-			centrePoints.append(room.centrePoint)
-		print(centrePoints)
-		points = array(centrePoints, dtype='int8')
-		triangles = Delaunay(points)
-		# tree = minimum_spanning_tree(triangles.points)
-		# ! WORKING HERE
-		print(dir(triangles))
+# 	def chooseMain(self):
+# 		avg = sum([room.area for room in self.roomlst])/len(self.roomlst)*1.25
+# 		for room in self.roomlst:
+# 			if room.area >= avg:
+# 				self.hubs.append(room)
+# 				self.roomlst.remove(room)
 
 
+# 	def triangulate(self):
+# 		centrePoints = []
+# 		for room in self.hubs:
+# 			centrePoints.append(room.centrePoint)
+# 		print(centrePoints)
+# 		points = array(centrePoints, dtype='int8')
+# 		triangles = Delaunay(points)
+# 		print(points[triangles.simplices])
+# 		tree = minimum_spanning_tree(points[triangles.simplicies])
+		# ! WORK HERE
+# 		print(dir(triangles))
 
-if __name__ == '__main__':
-	a = Generator(128, 50)
-	a.generate()
-	# for room in a.hubs:
-	# 	print(room.points)
-	# 	print(room.area)
-	# 	print(room.centrePoint)
-	print("YAY")
+
+
+# if __name__ == '__main__':
+# 	a = Generator(128, 50)
+# 	a.generate()
+# 	# for room in a.hubs:
+# 	# 	print(room.points)
+# 	# 	print(room.area)
+# 	# 	print(room.centrePoint)
+# 	print("YAY")
