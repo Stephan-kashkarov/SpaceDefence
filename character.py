@@ -98,7 +98,7 @@ class Character:
 			self.app.write(self.name + " scores a critical hit! Double damage inflicted!!")
 			time.sleep(1)
 
-		kill = target.defend_attack(hit)
+		kill = target.defend_attack(hit, self, modifier)
 		time.sleep(1)
 
 		if kill:
@@ -109,7 +109,7 @@ class Character:
 		else:
 			return False
 
-	def defend_attack(self, att_damage):
+	def defend_attack(self, att_damage, target, mod):
 		''' Defends an attack from the enemy. Accepts the "hit" score of the attacking enemy as
 		a parameter. Returns True is character dies, False if still alive.'''
 		
@@ -117,12 +117,16 @@ class Character:
 		roll = random.randint(1, 5)
 		block = int(roll * self.defense_mod * self.defense)
 				
-		# Roll for dodge - must roll a 10 (1% chance)
+		# Roll for dodge/counterattack - must roll a 10 (1% chance)
 		dodge_roll = random.randint(1, 100)
 		if dodge_roll == 10:
 			self.app.write(self.name + " successfully dodges the attack!")
 			block = att_damage
 			time.sleep(1)
+		elif dodge_roll in range(11, 26):
+			self.app.write("{} successfully counterattacked {}!".format(self.name, target.name))
+			self.attack_enemy(target, mod)
+			return False
 
 		# Calculate damage from attack
 		damage = att_damage - block

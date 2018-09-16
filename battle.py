@@ -560,6 +560,14 @@ class Battle:
 
 								if player.attack_enemy(self.enemies[target], modifier):
 									self.kills += 1
+									for item in target.inventory:
+										name = item.__class__.__name__
+										for item2 in player.inventory:
+											name2 = item2.__class__.__name__
+											if name == name2:
+												item2.ammount += item.ammount
+												item.ammount = 0
+												
 					
 						turn_over = True
 						if not has_attacked:

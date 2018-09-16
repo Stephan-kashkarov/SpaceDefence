@@ -48,25 +48,65 @@ class Map(object):
 		self.app = app
 		self.difficulty = difficulty
 		if self.difficulty == "e":
-			size = 16
+			size = 8
 		elif self.difficulty == "m":
-			size = 32
+			size = 16
 		elif self.difficulty == "h":
-			size = 64
+			size = 32
 		elif self.difficulty == "l":
-			size = 128
+			size = 64
 		else:
-			size = random.randint(16, 128)
+			size = random.randint(8, 64)
 		self.map = make_map(size, size, " ", True)
 		self.x = size
 		self.y = size
-		self.player = Player_group(1, 1, players)
+		self.generate_obsticles()
+		self.player = self.generate_player(players)
 		self.enemies = self.generate_enemies(int(size/8), mode)
 		self.shops = self.generate_shops(int(size/16))
 		
 
 		# self.map = Generator(128, 10)
 		# self.map.generate()
+
+	def generate_obsticles(self):
+		for i in range(int(self.x/2)):
+			while True:
+				x = random.randint(1, len(self.map) - 1)
+				y = random.randint(1, len(self.map) - 1)
+				if self.map[y][x] == " ":
+					break
+			shape = random.randint(0, 2)
+			if shape == 0:
+				for i in range(y, y + int(self.y/8)):
+					for j in range(x, x + int(self.x/8)):
+						try:
+							if self.map[i][j] != "#":
+								self.map[i][j] = "O"
+						except:
+							pass
+			elif shape == 1:
+				for i in range(y, y + int(self.y/4)):
+					try:
+						if self.map[i][x] != "#":
+							self.map[i][x] = "O"
+					except:
+						pass
+			else:
+				for i in range(x, x + int(self.x/4)):
+					try:
+						if self.map[y][i] != "#":
+							self.map[y][i] = "O"
+					except:
+						pass
+
+	def generate_player(self, players):
+		while True:
+			x = random.randint(0, self.x)
+			y = random.randint(0, self.y)
+			if self.map[y][x] == " ":
+				self.map[y][x] = "X"
+				return Player_group(x, y, players)
 
 	def generate_shops(self, num):
 		shops = []
