@@ -24,17 +24,17 @@ class Shop(object):
 		while True:
 			self.app.write("Select player:")
 			for i, player in enumerate(playerobj.players):
-				self.app.write("	{}. {} (Funds: ${})".format(i, player, player.money))
+				self.app.write("	{}. {} (Funds: ${})".format(i, player.name, player.money))
 			self.app.write("	e. exit")
 			self.app.wait_variable(self.app.inputVariable)
 			ans = self.app.inputVariable.get()
-			player = playerobj.players[ans]
+			player = playerobj.players[int(ans)]
 			self.app.write("Player Selected: {} the {}".format(player.name, player.__class__.__name__))
 			self.app.write("")
 			while True:
 				self.app.write("Select an Item:")
 				for i, item in enumerate(self.items):
-					self.app.write("	{}. {} ( ${} )".format(i, item, item.cost))
+					self.app.write("	{}. {} ( ${} )".format(i, item.name, item.cost))
 				self.app.write("	b. Back")
 				self.app.write("	e. exit")
 				try:
@@ -45,14 +45,14 @@ class Shop(object):
 					elif ans == "e":
 						return None
 
-					if ans not in range(len(self.items)):
+					if int(ans) not in range(len(self.items)):
 						raise ValueError
-					item = self.items.pop(i)
+					item = self.items.pop(int(ans))
 					if item.cost > player.money:
 						self.items.append(item)
 						raise ValueError
 					player.money -= item.cost
-					player.items.append(item)
+					player.inventory.append(item)
 				except ValueError:
 					self.app.write("Item too expensive / invalid choice")
 
@@ -64,7 +64,7 @@ class Shop(object):
 		if random.randint(0, 1) == 1:
 			items.append(Vest())
 		else:
-			items.append(Tinfoil_hat)
+			items.append(Tinfoil_hat())
 
 		if random.randint(0, 10) == 7:
 			items.append(Explosive_ammo)

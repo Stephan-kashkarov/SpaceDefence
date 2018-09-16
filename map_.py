@@ -16,6 +16,7 @@ import random
 # from scipy.sparse.csgraph import minimum_spanning_tree
 
 import character
+import item
 
 
 def make_map(x, y, val, boundry=False):
@@ -43,18 +44,40 @@ def make_map(x, y, val, boundry=False):
 
 class Map(object):
 
-	def __init__(self, players, size, mode, difficulty, app):
+	def __init__(self, players, mode, difficulty, app):
 		self.app = app
+		self.difficulty = difficulty
+		if self.difficulty == "e":
+			size = 16
+		elif self.difficulty == "m":
+			size = 32
+		elif self.difficulty == "h":
+			size = 64
+		elif self.difficulty == "l":
+			size = 128
 		self.map = make_map(size, size, " ", True)
-		self.player = Player_group(1, 1, players)
 		self.x = size
 		self.y = size
-		self.difficulty = difficulty
+		self.player = Player_group(1, 1, players)
 		self.enemies = self.generate_enemies(int(size/8), mode)
+		self.shops = self.generate_shops(int(size/16))
 		
 
 		# self.map = Generator(128, 10)
 		# self.map.generate()
+
+	def generate_shops(self, num):
+		shops = []
+		for i in range(num):
+			while True:
+				x = random.randint(0, self.x)
+				y = random.randint(0, self.y)
+				if self.map[y][x] == " ":
+					self.map[y][x] = "$"
+					shops.append(item.Shop(x, y, self.app))
+					break
+
+		return shops
 
 	def generate_enemies(self, num, team):
 		names = {
@@ -215,10 +238,10 @@ class Map(object):
 				return True
 			elif obj.__class__.__name__ != "Ai_group":
 				if self.map[y1 + y][x1 + x] == "$":
-					self.map[y1][x1] = " "
-					obj.x += x
-					obj.y += y
-					return 'shop'
+					for shop in self.shops:
+						if shop.x == x1 + x and shop.y == y1 + y:
+							shop.shop(obj)
+							return True
 				elif self.map[y1 + y][x1 + x] == "E":
 					self.map[y1][x1] = " "
 					obj.x += x
@@ -373,8 +396,8 @@ class Player_group(object):
 # 			return False, None
 
 # class Generator(object):
-# 	"""Generator object ~ 
-# 		This object generates the map and keeps track of its current situation 
+# 	"""Generator object ~S
+# 		This object generates the map and keeps track of its current situation
 # 	"""
 
 # 	def __init__(self, size=255, rooms=40):
@@ -464,10 +487,10 @@ class Player_group(object):
 # 									point[0] += dist_up
 # 								else:
 # 									point[0] += dist_down
-							
+
 # 						else:
 # 							list_y = [y[1] for y in y_dist]
-# 							index = list_y.index(max(list_y)) 
+# 							index = list_y.index(max(list_y))
 # 							point = room.points[y_dist[index][0] - 1]
 # 							bot_y = room2.points[0][1] if room2.points[0][1] < room2.points[1][1] else room2.points[1][1] # takes Lowest Y value of room2
 # 							top_y = room2.points[0][1] if room2.points[0][1] < room2.points[1][1] else room2.points[1][1] # takes Highest Y value of room2
