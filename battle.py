@@ -95,7 +95,7 @@ class Battle:
 
 	def select_ability(self, player):
 		""" Selects the ability the player would like to use """
-		player_race =player.__class__.__name__
+		player_race = player.__class__.__name__
 
 		while True:
 			try:
@@ -104,6 +104,8 @@ class Battle:
 					self.app.write("	1. Throw (10 ap)")
 				if player.adrenaline >= 20:
 					self.app.write("	2. Shield (20 ap)")
+				if (player.mind > 10 or player.level > 5) and player_race in ["Queen", 'Ethereal']:
+					self.app.write("	3. Stun (5 ap)")
 				self.app.write("	0. Back")
 				self.app.write("")
 				self.app.wait_variable(self.app.inputVariable)
@@ -504,75 +506,81 @@ class Battle:
 		while not self.player_won and not turn_over:
 			
 			for player in self.players:
-				while True:
-					player.print_status()
-					stance_choice = self.choose_stance()
-					player.set_stance(stance_choice)
-					
-					player_action = self.get_action(player)
-
-					has_attacked = False
-
-					if player_action == 5:
-						has_attacked = True
-
-					elif player_action == 4:
-						has_attacked = self.map(player, "A")
-
-					elif player_action == 3:
-						item_choice = self.select_item(player)
-						if item_choice == "e":
-							has_attacked = False
-						else:
-							has_attacked = self.use_item(player, item_choice)
-
-					elif player_action == 2:
-						ability_choice = self.select_ability(player)
-
-						if ability_choice != 0:
-							has_attacked = True
-							if ability_choice == 1 or ability_choice == 3:
-								target = self.choose_target(player)
-								if player.use_ability(ability_choice, self.enemies[target]):
-									self.kills += 1
-							else:
-								player.use_ability(ability_choice)
+				if player.stunned == True:
+					player.stunned == False
+				else:
+					while True:
+						player.print_status()
+						stance_choice = self.choose_stance()
+						player.set_stance(stance_choice)
 						
-					elif player_action == 0: # if player flees 
-						return True # exit and make flee true
+						player_action = self.get_action(player)
 
-					else:
-						target = self.choose_target(player)
-						if target == False:
-							has_attacked = False
-						else:
-							target -= 1
+						has_attacked = False
+
+						if player_action == 5:
 							has_attacked = True
-							modifier = self.can_see(player, self.enemies[target])[1]
 
-							if player.attack_enemy(self.enemies[target], modifier):
-								self.kills += 1
-				
-					turn_over = True
-					if not has_attacked:
-						turn_over = False
-					else:
-						player.adrenaline = player.max_adrenaline
-						self.player_won = True
-						for enemy in self.enemies:
-							if enemy.health > 0:
-								self.player_won = False
+						elif player_action == 4:
+							has_attacked = self.map(player, "A")
+
+						elif player_action == 3:
+							item_choice = self.select_item(player)
+							if item_choice != "e":
+								self.use_item(player, item_choice)
+							has_attacked = False
+
+						elif player_action == 2:
+							ability_choice = self.select_ability(player)
+
+							if ability_choice != 0:
+								has_attacked = True
+								if ability_choice == 1 or ability_choice == 3:
+									target = self.choose_target(player)
+									if target == 0:
+										has_attacked = False
+									else:
+										target -= 1
+										if player.use_ability(ability_choice, self.enemies[target]):
+											self.kills += 1
+								else:
+									player.use_ability(ability_choice)
+							
+						elif player_action == 0: # if player flees 
+							return True # exit and make flee true
+
+						else:
+							target = self.choose_target(player)
+							if target == False:
+								has_attacked = False
+							else:
+								target -= 1
+								has_attacked = True
+								modifier = self.can_see(player, self.enemies[target])[1]
+
+								if player.attack_enemy(self.enemies[target], modifier):
+									self.kills += 1
+					
+						turn_over = True
+						if not has_attacked:
+							turn_over = False
+						else:
+							player.adrenaline = player.max_adrenaline
+							self.player_won = True
+							for enemy in self.enemies:
+								if enemy.health > 0:
+									self.player_won = False
+									break
+
+							if self.player_won == True:
+								self.app.write("Your enemies have been vanquished!!")
+								self.app.write("")
+								time.sleep(1)
+								self.wins += 1
 								break
 
-						if self.player_won == True:
-							self.app.write("Your enemies have been vanquished!!")
-							self.app.write("")
-							time.sleep(1)
-							self.wins += 1
+						if turn_over:
 							break
-
-					if turn_over:
-						break
 
 	def do_enemy_actions(self):
 		""" Performs the enemies' actions """
@@ -584,36 +592,39 @@ class Battle:
 
 			for enemy in self.enemies:
 				if enemy.health > 0 and not self.player_lost:
-					players = [x for x in self.players]
-					for player in players:
-						if not self.can_see(enemy, player)[0]:
-							players.remove(player)
-					if not self.player_lost:
-						if len(players) == 0:
-							players = self.ai_map(enemy)
-						if len(players) != 0:
-							player_index = random.randint(0, len(players) - 1)
-							player = players[player_index]
-							mod = self.can_see(enemy, player)
-							loss = enemy.move(player, mod[1])
-							self.losses.append(loss)
-							if loss == True:
-								self.app.write(
-										"{} the {} has perished on the field of battle".format(
-											player.name, player.__class__.__name__
+					if enemy.stunned == True:
+						enemy.stunned = False
+					else:
+						players = [x for x in self.players]
+						for player in players:
+							if not self.can_see(enemy, player)[0]:
+								players.remove(player)
+						if not self.player_lost:
+							if len(players) == 0:
+								players = self.ai_map(enemy)
+							if len(players) != 0:
+								player_index = random.randint(0, len(players) - 1)
+								player = players[player_index]
+								mod = self.can_see(enemy, player)
+								loss = enemy.move(player, mod[1])
+								self.losses.append(loss)
+								if loss == True:
+									self.app.write(
+											"{} the {} has perished on the field of battle".format(
+												player.name, player.__class__.__name__
+											)
 										)
-									)
-								self.app.write("")
-								time.sleep(1)
-								game_over = True
-								for player in self.players:
-									if player.health > 0:
-										game_over = False
-								if game_over:
-									self.player_lost = True
-									self.app.write("Your party has been killed by your enemies.")
 									self.app.write("")
 									time.sleep(1)
-									self.player_lost = True
-									return True
+									game_over = True
+									for player in self.players:
+										if player.health > 0:
+											game_over = False
+									if game_over:
+										self.player_lost = True
+										self.app.write("Your party has been killed by your enemies.")
+										self.app.write("")
+										time.sleep(1)
+										self.player_lost = True
+										return True
 				enemy.adrenaline = enemy.max_adrenaline

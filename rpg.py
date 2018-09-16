@@ -79,6 +79,7 @@ def set_race(mode):
 				app.write("	2. Sectoid")
 				app.write("	3. Muton")
 				app.write("	4. Ethereal")
+				app.write("	5. Queen")
 				app.write("")
 				app.wait_variable(app.inputVariable)
 				race = app.inputVariable.get()
@@ -87,7 +88,7 @@ def set_race(mode):
 					app.quit()
 			
 				race = int(race)
-				if race not in range(1,5):
+				if race not in range(1,6):
 					raise ValueError
 				else:
 					break
@@ -161,8 +162,10 @@ def create_player(mode, race, char_name):
 			player = character.Sectoid(char_name, app)
 		elif race == 3:
 			player = character.Muton(char_name, app)
-		else:
+		elif race == 4:
 			player = character.Ethereal(char_name, app)
+		else:
+			player = character.Queen(char_name, app)
 	# Humans
 	else:
 		if race == 1:

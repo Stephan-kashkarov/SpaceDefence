@@ -35,6 +35,9 @@ class Character:
 		self.battleX = 0
 		self.battleY = 0
 		self.money = 10
+		self.xp = 0
+		self.level = 0
+		self.stunned = False
 
 	def __str__(self):
 		""" string representation of character """
@@ -182,6 +185,9 @@ class Character:
 				valid = True
 		elif choice == 2 and self.adrenaline >= 20:
 			valid = True
+
+		elif choice == 3 and (self.mind > 10 or self.level > 5) and race in ["Queen", 'Ethereal']:
+			valid = True
 				
 		return valid
 
@@ -195,6 +201,8 @@ class Character:
 			kill = self.throw(target)
 		elif choice == 2:
 			self.engage_shield()
+		elif choice == 3:
+			self.stun(target)
 		else:
 			self.app.write("Invalid ability choice. Ability failed!")
 			self.app.write("")
@@ -251,6 +259,12 @@ class Character:
 		self.app.write(self.name + " is shielded from the next " + str(self.shield) + " damage.")
 		self.app.write("")
 		time.sleep(1)
+
+	def stun(self, target):
+		self.adrenaline -= 5
+		self.app.write("{} has stunned {}".format(self.name, target.name))
+		target.adrenaline -= 10
+		target.stunned = True
 
 #### Miscellaneous Character Actions ####
 
@@ -542,6 +556,36 @@ class Psionic(Character):
 
 	def move(self, player, modifier):
 		""" Defines the AI for the Psionic class """
+		move_complete = Character.move(self, player)
+		if not move_complete:
+			self.set_stance('d')
+			if self.shield == 0 and self.adrenaline >= 20:
+				self.use_ability(2)
+			elif self.adrenaline >= 10:
+				return self.use_ability(1, player)
+			else:
+				return self.attack_enemy(player, modifier)
+		return False
+
+
+class Queen(Character):
+	'''Defines the attributes of an Alien Queen in the game. Inherits the constructor and methods
+	of the Character class '''
+
+	# Constructor for Queen class
+	def __init__(self, char_name, app):
+		Character.__init__(self, char_name, app)
+		self.max_health = 120
+		self.max_adrenaline = 20
+		self.attack = 7
+		self.defense = 3
+		self.mind = 12
+		self.resistance = 9
+		self.health = self.max_health
+		self.adrenaline = self.max_adrenaline
+
+	def move(self, player, modifier):
+		""" Defines the AI for the Queen class """
 		move_complete = Character.move(self, player)
 		if not move_complete:
 			self.set_stance('d')
