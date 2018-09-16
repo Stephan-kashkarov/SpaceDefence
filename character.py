@@ -29,7 +29,8 @@ class Character:
 		self.name = char_name
 		self.shield = 0
 		self.max_shield = 50
-		self.inventory = []
+		self.starting_inventory = [item.Adernaline_shot(), item.Health_shot()]
+		self.inventory = self.starting_inventory
 		self.app = app
 		self.battleX = 0
 		self.battleY = 0
@@ -253,29 +254,6 @@ class Character:
 		self.app.write("")
 		time.sleep(1)
 
-#### Character Item Actions ####
-
-	def use_medikit(self):
-		"""
-		Uses a medikit if the player has one. Returns True if has medikit,
-		false if hasn't
-		"""
-		if self.medikits >= 1:
-			self.medikits -= 1
-			self.health += 250
-			if self.health > self.max_health:
-				self.health = self.max_health
-			self.app.write(self.name + " uses a medikit!")
-			time.sleep(1)
-			self.app.write(self.name + " has " + str(self.health) + " hit points.")
-			self.app.write("")
-			time.sleep(1)
-			return True
-		else:
-			self.app.write("You have no medikits left!")
-			self.app.write("")
-			return False
-
 #### Miscellaneous Character Actions ####
 
 	def reset(self):
@@ -283,7 +261,7 @@ class Character:
 		
 		self.health = self.max_health
 		self.adrenaline = self.max_adrenaline
-		self.medikits = self.starting_medikits
+		self.inventory = self.starting_inventory
 		self.shield = 0
 		
 	def print_status(self):
@@ -330,8 +308,6 @@ class Character:
 			shield_bar += "| " + str(self.shield) + " sp (" + str(int(self.shield*100/self.max_shield)) +"%)"
 			self.app.write(shield_bar)
    
-
-		self.app.write("Medikits remaining: " + str(self.medikits))
 		self.app.write("")
 
 ######
@@ -348,14 +324,13 @@ class Assault(Character):
 		Character.__init__(self, char_name, app)
 		self.max_health = 50
 		self.max_adrenaline = 40
-		self.starting_medikits = 1
 		self.attack = 7
 		self.defense = 8
 		self.mind = 5
 		self.resistance = 4
 		self.health = self.max_health
 		self.adrenaline = self.max_adrenaline
-		self.medikits = self.starting_medikits
+		self.inventory = self.starting_inventory
 
 	def move(self, player, modifier):
 		""" Defines the AI for the Assault class """
@@ -382,14 +357,12 @@ class Heavy(Character):
 		Character.__init__(self, char_name, app)
 		self.max_health = 75
 		self.max_adrenaline = 30
-		self.starting_medikits = 1
 		self.attack = 9
 		self.defense = 6
 		self.mind = 4
 		self.resistance = 5
 		self.health = self.max_health
 		self.adrenaline = self.max_adrenaline
-		self.medikits = self.starting_medikits
 
 	def move(self, player, modifier):
 		""" Defines the AI for the Heavy class """
@@ -408,14 +381,12 @@ class Sniper(Character):
 		Character.__init__(self, char_name, app)
 		self.max_health = 50
 		self.max_adrenaline = 60
-		self.starting_medikits = 1
 		self.attack = 6
 		self.defense = 8
 		self.mind = 8
 		self.resistance = 8
 		self.health = self.max_health
 		self.adrenaline = self.max_adrenaline
-		self.medikits = self.starting_medikits
 
 	def move(self, player, modifier):
 		""" Defines the AI for the Sniper class """
@@ -437,14 +408,12 @@ class Support(Character):
 		Character.__init__(self, char_name, app)
 		self.max_health = 75
 		self.max_adrenaline = 40
-		self.starting_medikits = 2
 		self.attack = 3
 		self.defense = 9
 		self.mind = 6
 		self.resistance = 10
 		self.health = self.max_health
 		self.adrenaline = self.max_adrenaline
-		self.medikits = self.starting_medikits
 
 	def move(self, player, modifier):
 		""" Defines the AI for the Support class """
@@ -467,14 +436,12 @@ class Floater(Character):
 		Character.__init__(self, char_name, app)
 		self.max_health = 45
 		self.max_adrenaline = 20
-		self.starting_medikits = 0
 		self.attack = 3
 		self.defense = 3
 		self.mind = 0
 		self.resistance = 0
 		self.health = self.max_health
 		self.adrenaline = self.max_adrenaline
-		self.medikits = self.starting_medikits
 
 	def move(self, player, modifier):
 		""" Defines the AI for the Floater class """
@@ -493,14 +460,12 @@ class Sectoid(Character):
 		Character.__init__(self, char_name, app)
 		self.max_health = 65
 		self.max_adrenaline = 35
-		self.starting_medikits = 0
 		self.attack = 7
 		self.defense = 5
 		self.mind = 2
 		self.resistance = 4
 		self.health = self.max_health
 		self.adrenaline = self.max_adrenaline
-		self.medikits = self.starting_medikits
 
 	def move(self, player, modifier):
 		""" Defines the AI for the Sectoid class """
@@ -519,14 +484,12 @@ class Muton(Character):
 		Character.__init__(self, char_name, app)
 		self.max_health = 85
 		self.max_adrenaline = 20
-		self.starting_medikits = 1
 		self.attack = 9
 		self.defense = 7
 		self.mind = 4
 		self.resistance = 6
 		self.health = self.max_health
 		self.adrenaline = self.max_adrenaline
-		self.medikits = self.starting_medikits
 
 	def move(self, player, modifier):
 		""" Defines the AI for the Muton class """
@@ -545,14 +508,12 @@ class Ethereal(Character):
 		Character.__init__(self, char_name, app)
 		self.max_health = 50
 		self.max_adrenaline = 100
-		self.starting_medikits = 2
 		self.attack = 5
 		self.defense = 6
 		self.mind = 10
 		self.resistance = 10
 		self.health = self.max_health
 		self.adrenaline = self.max_adrenaline
-		self.medikits = self.starting_medikits
 
 	def move(self, player, modifier):
 		""" Defines the AI for the Ethereal class """
@@ -574,14 +535,12 @@ class Psionic(Character):
 		Character.__init__(self, char_name, app)
 		self.max_health = 55
 		self.max_adrenaline = 100
-		self.starting_medikits = 2
 		self.attack = 5
 		self.defense = 6
 		self.mind = 10
 		self.resistance = 10
 		self.health = self.max_health
 		self.adrenaline = self.max_adrenaline
-		self.medikits = self.starting_medikits
 
 	def move(self, player, modifier):
 		""" Defines the AI for the Psionic class """

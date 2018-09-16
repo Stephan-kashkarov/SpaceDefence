@@ -14,7 +14,7 @@ class Shop(object):
 	def __init__(self, x, y, app):
 		self.x = x
 		self.y = y
-		self.items = []
+		self.items = self.randomItems()
 		self.app = app
 
 	def shop(self, playerobj):
@@ -24,7 +24,7 @@ class Shop(object):
 		while True:
 			self.app.write("Select player:")
 			for i, player in enumerate(playerobj.players):
-				self.app.write("	{}. {}".format(i, player))
+				self.app.write("	{}. {} (Funds: ${})".format(i, player, player.money))
 			self.app.write("	e. exit")
 			self.app.wait_variable(self.app.inputVariable)
 			ans = self.app.inputVariable.get()
@@ -34,10 +34,17 @@ class Shop(object):
 			while True:
 				self.app.write("Select an Item:")
 				for i, item in enumerate(self.items):
-					self.app.write("	{}. {}".format(i, item))
+					self.app.write("	{}. {} ( ${} )".format(i, item, item.cost))
+				self.app.write("	b. Back")
+				self.app.write("	e. exit")
 				try:
 					self.app.wait_variable(self.app.inputVariable)
 					ans = self.app.inputVariable.get()
+					if ans == "b":
+						break
+					elif ans == "e":
+						return None
+
 					if ans not in range(len(self.items)):
 						raise ValueError
 					item = self.items.pop(i)
@@ -50,11 +57,25 @@ class Shop(object):
 					self.app.write("Item too expensive / invalid choice")
 
 	def randomItems(self):
-		pass
+		items = []
+		items.append(Health_shot())
+		items.append(Adernaline_shot())
+		items.append(Medkit())
+		if random.randint(0, 1) == 1:
+			items.append(Vest())
+		else:
+			items.append(Tinfoil_hat)
+
+		if random.randint(0, 10) == 7:
+			items.append(Explosive_ammo)
+		elif random.randint(0,15) == 7:
+			items.append(Armour)
+		return items
 
 
 class Item(object):
 	def __init__(self):
+		self.name = ""
 		self.ammount = 1
 		self.max_health = 0
 		self.health = 0
@@ -80,6 +101,15 @@ class Item(object):
 			return False
 
 
+class Health_shot(Item):
+	def __init__(self):
+		super().__init__()
+		self.name = "Health Shot"
+		self.health = 10
+		self.adrenaline = 5
+		self.cost = 10
+
+
 class Adernaline_shot(Item):
 	def __init__(self):
 		super().__init__()
@@ -89,10 +119,19 @@ class Adernaline_shot(Item):
 		self.cost = 10
 
 
-class Photon_shield(Item):
+class Medkit(Item):
 	def __init__(self):
 		super().__init__()
-		self.name = "Photon Shield"
+		self.name = "Medkit"
+		self.health = 40
+		self.adrenaline = 2
+		self.cost = 30
+
+
+class Vest(Item):
+	def __init__(self):
+		super().__init__()
+		self.name = "Vest"
 		self.defense = 25
 		self.cost = 30
 
@@ -106,7 +145,8 @@ class Tinfoil_hat(Item):
 		self.cost = 40
 
 
-class Explosive_bullets(Item):
+
+class Explosive_ammo(Item):
 	def __init__(self):
 		super().__init__()
 		self.name = "Explosive Ammo"
@@ -118,5 +158,5 @@ class Armour(Item):
 	def __init__(self):
 		super().__init__()
 		self.name = "Armour"
-		self.max_health = 30
-		self.cost = 110
+		self.max_health = 50
+		self.cost = 120

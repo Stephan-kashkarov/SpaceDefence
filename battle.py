@@ -133,25 +133,22 @@ class Battle:
 		while True:
 			try:
 				self.app.write("Select an Item:")
-				self.app.write("	1. Medkit ({} ~ available)".format(player.medikits))
-				self.app.write("	"+"-"*20)
 				if len(player.inventory) > 0:
-					for i, item in enumerate(player.inventory, 2):
-						self.app.write("	{}. {} ({} ~ available)".format(i, item, item.ammount))
+					for i, item in enumerate(player.inventory):
+						self.app.write("	{}. {} ({} ~ available)".format(i, item.name, item.ammount))
 				else:
-					self.app.write("	No custom items in inventory")
-				self.app.write("	"+"-"*20)
-				self.app.write("	0. Back")
+					self.app.write("	No items in inventory")
+				self.app.write("	e. exit")
 				self.app.wait_variable(self.app.inputVariable)
 				item_choice = self.app.inputVariable.get()
 
 				if item_choice == "quit":
 					self.app.quit()
 
-				elif int(item_choice) in [0, 1]:
-					return int(item_choice)
+				elif item_choice == "e":
+					return item_choice
 
-				elif int(item_choice) - 2 in range(len(player.inventory)):
+				elif int(item_choice) in range(len(player.inventory)):
 					return int(item_choice)
 
 				else:
@@ -162,6 +159,15 @@ class Battle:
 				self.app.write("You must enter a valid choice")
 				self.app.write("")
 
+	def use_item(self, player, index):
+		item = player.inventory[index]
+		use = item.use(player)
+		if use:
+			self.app.write("{} has used a/an {}".format(player.name, item.name))
+			return True
+		else:
+			self.app.wrte("{} has no more {}s".format(player.name, item.name))
+			return False
 
 	def choose_target(self, player):
 		""" Selects the target of the player's action """
@@ -515,11 +521,10 @@ class Battle:
 
 					elif player_action == 3:
 						item_choice = self.select_item(player)
-						if item_choice != 0:
-							if item_choice == 1:
-								has_attacked = player.use_medikit()
-							else:
-								has_attacked = player.inventory[item_choice - 2].use(player)
+						if item_choice == "e":
+							has_attacked = False
+						else:
+							has_attacked = self.use_item(player, item_choice)
 
 					elif player_action == 2:
 						ability_choice = self.select_ability(player)
@@ -568,7 +573,6 @@ class Battle:
 
 					if turn_over:
 						break
-
 
 	def do_enemy_actions(self):
 		""" Performs the enemies' actions """
