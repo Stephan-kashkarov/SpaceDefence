@@ -43,6 +43,7 @@ def set_mode():
 	# verifying user input. See class module on Exception Handling.
 	while True:
 		try:
+			# gets input
 			app.write("Please select a side:")
 			app.write("	1. Humans")
 			app.write("	2. Aliens")
@@ -50,6 +51,7 @@ def set_mode():
 			app.wait_variable(app.inputVariable)
 			mode = app.inputVariable.get()
 		
+			# parses input
 			if mode == 'quit':
 				app.quit()
 		
@@ -133,6 +135,7 @@ def set_name():
 	""" Set the player's name """
 	while True:
 		try:
+			# asks for players name
 			app.write("Please enter your Character Name:")
 			app.write("")
 			app.wait_variable(app.inputVariable)
@@ -155,6 +158,7 @@ def set_name():
 def create_player(mode, race, char_name):
 	""" Create the player's character """
 	# Aliens
+	# uses AI algorithm to generate the correct type of player
 	if mode == 2:
 		if race == 1:
 			player = character.Floater(char_name, app)
@@ -256,6 +260,7 @@ def reset_char():
 			app.write("")
 
 def print_results():
+	"""Prints results"""
 	app.write("Game Over!")
 	app.write("~"*20)
 	app.write("No. Battles: {0}".format(str(battles)))
@@ -267,6 +272,7 @@ def print_results():
 	app.write("")
 
 def startup():
+	"""Runs startup functions"""
 	players = []
 	mode = set_mode()
 	race = set_race(mode)
@@ -281,7 +287,7 @@ def startup():
 		if len(players) > 4:
 			app.write("Party is full!")
 			break
-		else:
+		else: # creates more characters
 			app.write("Create another Character? (y/n)")
 			app.wait_variable(app.inputVariable)
 			ans = app.inputVariable.get()
@@ -291,6 +297,7 @@ def startup():
 	difficulty = set_difficulty()
 
 
+# does startup again but it dosent work if i just put the func here for local var reasons
 battles = 0
 wins = 0
 kills = 0
@@ -321,22 +328,22 @@ while True:
 difficulty = set_difficulty()
 
 while True:
-	move = map_.Map(players, mode, difficulty, app)
+	move = map_.Map(players, mode, difficulty, app) # generates world map
 	while True:
-		enemies, leave = move.run()
-		if leave:
+		enemies, leave = move.run() # runs map
+		if leave: # quit cond
 			break
-		encounter = battle.Battle(players, enemies, app)
-		battle_wins, battle_kills, loss = encounter.play()
+		encounter = battle.Battle(players, enemies, app) # makes battle once map is returned
+		battle_wins, battle_kills, loss = encounter.play() # runs battle
 		battles += 1
 		wins += battle_wins
 		kills += battle_kills
 		if loss:
 			break
 
-	print_results()
+	print_results() # if loss or exit
 		
-	quit = quit_game()
+	quit = quit_game() # prompt user
 
 	if quit == "n":
 		app.write("Thank you for playing Alien Defense.")
@@ -346,9 +353,9 @@ while True:
 	else:
 		# Playing again - reset all enemies and players
 		reset = reset_char()
-		if reset:
+		if reset: # whipe all progress and restart
 			startup()
-		else:
+		else: # use same startup conditions
 			for player in players:
 				player.reset()
 			for enemy in enemies:

@@ -50,7 +50,6 @@ class Character:
 		"""
 		move_complete = False
 		self.set_stance('d')
-		move_complete = True
 		return move_complete
 
 #### Character Attacking Actions ####
@@ -123,7 +122,7 @@ class Character:
 			self.app.write(self.name + " successfully dodges the attack!")
 			block = att_damage
 			time.sleep(1)
-		elif dodge_roll in range(11, 26):
+		elif dodge_roll in range(11, 26): # counter attack roll
 			self.app.write("{} successfully counterattacked {}!".format(self.name, target.name))
 			self.attack_enemy(target, mod)
 			return False
@@ -214,16 +213,19 @@ class Character:
 		return kill
 
 	def throw(self, target):
+		"""The Throw ability"""
 		self.adrenaline -= 10
 		self.app.write(self.name + " throws " + target.name + " through the air!")
 		time.sleep(1)
 			
+		# rolls for defense
 		roll = random.randint(1, 10)
 		defense_roll = random.randint(1, 10)
 		damage = int(roll * self.mind) - int(defense_roll * target.resistance)
 		if damage < 0:
 			damage = 0
-			
+		
+		# checks for sheild
 		if target.shield > 0:
 			if damage <= target.shield:
 				self.app.write(target.name + "'s shield absorbs " + str(damage) + " damage.")
@@ -235,7 +237,8 @@ class Character:
 				time.sleep(1)
 				damage = damage - target.shield
 				target.shield = 0
-												
+
+
 		self.app.write(target.name + " takes " + str(damage) + " damage.")
 		self.app.write("")
 		time.sleep(1)
@@ -255,6 +258,7 @@ class Character:
 			return False
 
 	def engage_shield(self):
+		"""Uses shield power"""
 		self.adrenaline -= 20
 		self.app.write(self.name + " engages a personal shield!")
 		time.sleep(1)
@@ -265,6 +269,7 @@ class Character:
 		time.sleep(1)
 
 	def stun(self, target):
+		"""Stuns enemy"""
 		self.adrenaline -= 5
 		self.app.write("{} has stunned {}".format(self.name, target.name))
 		target.adrenaline -= 10
