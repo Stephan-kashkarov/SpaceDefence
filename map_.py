@@ -55,6 +55,8 @@ class Map(object):
 			size = 64
 		elif self.difficulty == "l":
 			size = 128
+		else:
+			size = random.randint(16, 128)
 		self.map = make_map(size, size, " ", True)
 		self.x = size
 		self.y = size
@@ -105,14 +107,23 @@ class Map(object):
 		for i in range(num):
 			group = []
 			if team == 1:
-				if self.difficulty == "e":
+				if self.difficulty == 'r':
+					difficulty = random.randint(0, 3)
+				else:
+					if self.difficulty == 'e':
+						difficulty = 0
+					elif self.difficulty == 'm':
+						difficulty = 1
+					elif self.difficulty == 'h':
+						difficulty = 2
+				if difficulty == 0:
 					if random.randint(0, 3) == 1:
 						size = 3
 					else:
 						size = 4
 					for i in range(size):
 						group.append(character.Floater(names[2][0], self.app))
-				elif self.difficulty == "m":
+				elif difficulty == 1:
 					size = 4
 					for i in range(size):
 						if random.randint(0, 1) == 1:
@@ -122,7 +133,7 @@ class Map(object):
 								group.append(character.Sectoid(names[2][1], self.app))
 						else:
 							group.append(character.Floater(names[2][0], self.app))
-				elif self.difficulty == "h":
+				elif difficulty == 2:
 					if random.randint(0, 3) == 1:
 						size = 4
 					else:
@@ -135,7 +146,7 @@ class Map(object):
 								group.append(character.Muton(names[2][2], self.app))
 						else:
 							group.append(character.Sectoid(names[2][1], self.app))
-				else:
+				elif difficulty == 3:
 					if random.randint(0, 10) == 10:
 						size = 6
 					else:
@@ -150,7 +161,17 @@ class Map(object):
 							group.append(character.Sectoid(names[2][1], self.app))
 
 			if team == 2:
-				if self.difficulty == "e":
+				if self.difficulty == 'r':
+					difficulty = random.randint(0, 3)
+				else:
+					if self.difficulty == 'e':
+						difficulty = 0
+					elif self.difficulty == 'm':
+						difficulty = 1
+					elif self.difficulty == 'h':
+						difficulty = 2
+
+				if difficulty == 0:
 					if random.randint(0, 3) == 1:
 						size = 2
 					else:
@@ -158,7 +179,7 @@ class Map(object):
 					for i in range(size):
 						rand_name = names[1][random.randint(0, len(names[1]) - 1)]
 						group.append(character.Assault(rand_name, self.app))
-				elif self.difficulty == "m":
+				elif difficulty == 1:
 					size = 3
 					for i in range(size):
 						rand_name = names[1][random.randint(0, len(names[1]) - 1)]
@@ -169,7 +190,7 @@ class Map(object):
 								group.append(character.Sniper(rand_name, self.app))
 						else:
 							group.append(character.Assault(rand_name, self.app))
-				elif self.difficulty == "h":
+				elif difficulty == 2:
 					if random.randint(0, 3) == 1:
 						size = 3
 					else:

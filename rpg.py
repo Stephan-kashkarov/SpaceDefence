@@ -186,6 +186,7 @@ def set_difficulty():
 			app.write("	m - Medium")
 			app.write("	h - Hard")
 			app.write("	l - Legendary")
+			app.write("	r - Randomised")
 			app.write("")
 			app.wait_variable(app.inputVariable)
 			difficulty = app.inputVariable.get()
@@ -193,7 +194,7 @@ def set_difficulty():
 			if difficulty == 'quit':
 				app.quit()
 
-			if difficulty not in ['e','m','h','l'] or difficulty == '':
+			if difficulty not in ['e','m','h','l','r'] or difficulty == '':
 				raise ValueError
 			else:
 				break
@@ -317,7 +318,7 @@ while True:
 difficulty = set_difficulty()
 
 while True:
-	move = map_.Map(players, 32, mode, difficulty, app)
+	move = map_.Map(players, mode, difficulty, app)
 	while True:
 		enemies, leave = move.run()
 		if leave:

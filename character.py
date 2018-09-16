@@ -46,10 +46,8 @@ class Character:
 		character AI kicks in - applies to all children
 		"""
 		move_complete = False
-		if self.health < 50 and self.medikits > 0:
-			self.set_stance('d')
-			self.use_medikit()
-			move_complete = True
+		self.set_stance('d')
+		move_complete = True
 		return move_complete
 
 #### Character Attacking Actions ####
